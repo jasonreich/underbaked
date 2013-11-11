@@ -7,7 +7,12 @@
     <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap-theme.min.css">
 
-    <script src="//cdnjs.cloudflare.com/ajax/libs/moment.js/2.4.0/moment.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <script src="//cdnjs.cloudflare.com/ajax/libs/rxjs/2.2.3/rx.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/rxjs/2.2.3/rx.async.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/rxjs/2.2.3/rx.binding.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/rxjs/2.2.3/rx.time.min.js"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/knockout/3.0.0/knockout-min.js"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.0.2/js/bootstrap.min.js"></script>
@@ -18,8 +23,6 @@
         <div class="navbar-header">
           <a class="navbar-brand" href="#">Tracker</a>
         </div>
-
-        <p class="navbar-text navbar-right" data-bind="text: status"></p>
       </nav>
     </p>
     <p>
@@ -27,46 +30,40 @@
         <h4>Location data</h4>
         <ul data-bind="foreach: trackingData">
           <li>
-            <pre data-bind="text: location"></pre>
-            <i data-bind="text: timestamp"></i>
+            <span data-bind="text: coords.longitude"></span> / 
+            <span data-bind="text: coords.latitude"></span> &mdash;
+            <span data-bind="text: coords.accuracy"></span>
           </li>
         </ul>
       </div>
     </p>
     <script>
-    var Track = function(location) {
-      var self = this;
+    function watchPosition(geolocationOptions) {
+        return Rx.Observable.create(function (observer) {
+            var watchId = window.navigator.geolocation.watchPosition(
+                function successHandler (loc) {
+                    observer.onNext(loc);
+                }, 
+                function errorHandler (err) {
+                    observer.onError(err);
+                }, 
+                geolocationOptions);
 
-      self._timestamp = moment();
-      self.timestamp = ko.computed(function() {
-        return moment(self._timestamp).fromNow();
-      });
-
-      self.location = location;
-    }
+            return function () {
+                window.navigator.geolocation.clearWatch(watchId);
+            };
+        }).publish().refCount();
+    };
 
     var ViewModel = function() {
       var self = this;
 
-      self.status = ko.observable("Cannot access GPS");
-
       self.trackingData = ko.observableArray();
-
-      var trackSuccess = function(pos) {
-        self.trackingData.unshift(new Track(ko.toJSON(pos, null, 2)));
-      };
-
-      var trackFailure = function(err) {
-        self.status(err.message);
-      };
-
-      var trackOptions = { enableHighAccuracy: true };
-
-      if (navigator.geolocation) {
-        self.status("Tracking online");
-
-        navigator.geolocation.watchPosition(trackSuccess, trackFailure, trackOptions);
-      }
+      
+      var locationStream = watchPosition({ enableHighAccuracy: true });
+      locationStream.throttle(1000).subscribe(function (pos) {
+        self.trackingData.unshift(pos);
+      });
     };
 
     ko.applyBindings(new ViewModel());
