@@ -9,7 +9,7 @@
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    
+
     <script src="//cdnjs.cloudflare.com/ajax/libs/rxjs/2.2.3/rx.min.js"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/rxjs/2.2.3/rx.async.min.js"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/rxjs/2.2.3/rx.binding.min.js"></script>
@@ -25,6 +25,14 @@
           <a class="navbar-brand" href="#">Tracker</a>
         </div>
       </nav>
+    </p>
+    <p>
+      <div class="checkbox">
+        <label>
+          <input type="checkbox" data-bind="checked: isEnabled">
+          Enable tracking
+        </label>
+      </div>
     </p>
     <p>
       <div class="well">
@@ -60,10 +68,20 @@
       var self = this;
 
       self.trackingData = ko.observableArray();
-      
+
       var locationStream = watchPosition({ enableHighAccuracy: true });
-      locationStream.throttle(1000).subscribe(function (pos) {
-        self.trackingData.unshift(pos);
+      var subscription = null;
+
+      self.isEnabled = ko.observable(false);
+
+      self.isEnabled.subscribe(function(newValue) {
+        if (newValue) {
+          subscription = locationStream.throttle(1000).subscribe(function (pos) {
+            self.trackingData.unshift(pos);
+          });
+        } else if (subscription) {
+          subscription.dispose();
+        }
       });
     };
 
