@@ -49,6 +49,7 @@
     <script>
     function watchPosition(geolocationOptions) {
         return Rx.Observable.create(function (observer) {
+            console.log("New stream.");
             var watchId = window.navigator.geolocation.watchPosition(
                 function successHandler (loc) {
                     observer.onNext(loc);
@@ -59,6 +60,7 @@
                 geolocationOptions);
 
             return function () {
+                console.log("Killed stream.");
                 window.navigator.geolocation.clearWatch(watchId);
             };
         }).publish().refCount();
