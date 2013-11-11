@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Geolocation tracker</title>
+
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap-theme.min.css">
+
+    <script src="//cdnjs.cloudflare.com/ajax/libs/moment.js/2.4.0/moment.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/knockout/3.0.0/knockout-min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.0.2/js/bootstrap.min.js"></script>
+  </head>
+  <body class="container">
+    <p>
+      <nav class="navbar navbar-inverse" role="navigation">
+        <div class="navbar-header">
+          <a class="navbar-brand" href="#">Tracker</a>
+        </div>
+
+        <p class="navbar-text navbar-right" data-bind="text: status"></p>
+      </nav>
+    </p>
+    <p>
+      <div class="well">
+        <h4>Location data</h4>
+        <ul data-bind="foreach: trackingData">
+          <li>
+            <pre data-bind="text: location"></pre>
+            <i data-bind="text: timestamp"></i>
+          </li>
+        </ul>
+      </div>
+    </p>
+    <script>
+    var Track = function(location) {
+      var self = this;
+
+      self._timestamp = moment();
+      self.timestamp = ko.computed(function() {
+        return moment(self._timestamp).fromNow();
+      });
+
+      self.location = location;
+    }
+
+    var ViewModel = function() {
+      var self = this;
+
+      self.status = ko.observable("Cannot access GPS");
+
+      self.trackingData = ko.observableArray();
+
+      var trackSuccess = function(pos) {
+        self.trackingData.unshift(new Track(ko.toJSON(pos, null, 2)));
+      };
+
+      var trackFailure = function(err) {
+        self.status(err.message);
+      };
+
+      var trackOptions = { enableHighAccuracy: true };
+
+      if (navigator.geolocation) {
+        self.status("Tracking online");
+
+        navigator.geolocation.watchPosition(trackSuccess, trackFailure, trackOptions);
+      }
+    };
+
+    ko.applyBindings(new ViewModel());
+    </script>
+  </body>
+</html>
