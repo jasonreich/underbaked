@@ -1,0 +1,41 @@
+{
+  "name": "rxjs",
+  "version": "2.2.4",
+  "main": [
+    "rx.js",
+    "rx.aggregates.js",
+    "rx.async.js",
+    "rx.binding.js",
+    "rx.coincidence.js",
+    "rx.experimental.js",
+    "rx.joinpatterns.js",
+    "rx.testing.js",
+    "rx.time.js",
+    "rx.virtualtime.js"
+  ],
+  "ignore": [
+    ".*",
+    "*.bat",
+    "*.md",
+    "*.min.*",
+    "*.txt",
+    "*.log",
+    "package.json",
+    "node_modules",
+    "doc",
+    "examples",
+    "src",
+    "tests"
+  ],
+  "homepage": "https://github.com/Reactive-Extensions/RxJS",
+  "_release": "2.2.4",
+  "_resolution": {
+    "type": "version",
+    "tag": "v2.2.4",
+    "commit": "72ddcc15436f5d18c5b6743f360d4c1eb4f8644b"
+  },
+  "_source": "git://github.com/Reactive-Extensions/RxJS.git",
+  "_target": "~2.2.4",
+  "_originalSource": "rxjs",
+  "_direct": true
+}

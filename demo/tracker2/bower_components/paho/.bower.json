@@ -1,0 +1,13 @@
+{
+  "name": "paho",
+  "_release": "5fd45aea6b",
+  "_resolution": {
+    "type": "branch",
+    "branch": "master",
+    "commit": "5fd45aea6be32f86941ff7d3dffa9b9befaf1a3a"
+  },
+  "_source": "git://git.eclipse.org/gitroot/paho/org.eclipse.paho.mqtt.javascript.git",
+  "_target": "*",
+  "_originalSource": "git://git.eclipse.org/gitroot/paho/org.eclipse.paho.mqtt.javascript.git",
+  "_direct": true
+}
