@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+  <!--
+    Obviously this is using *my* Google API key so please don't share it around.
+  
+    For this geolocation api to work, you'll need to run this file from a webserver. Easiest way is
+    to navigate to the directory in which you downloaded this file and run
+    
+    $ python -m SimpleHTTPServer
+    
+    and then go to http://localhost:8000/mapsapi.html
+  -->
+
+  <head>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+    <style type="text/css">
+      html { height: 100% }
+      body { height: 100%; margin: 0; padding: 0 }
+      #map-canvas { height: 100%; width: 79%; }
+      #controls { float: right; width: 19%; padding: 15px; }
+    </style>
+    <script type="text/javascript"
+      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA_v6EPnrRJXiWJbu8_3_jNvhToY6D3ogU&sensor=true">
+    </script>
+    <script type="text/javascript"
+      src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js">
+    </script>
+    
+    <script type="text/javascript">
+      $(function() {
+        google.maps.visualRefresh = true;
+      
+        var mapOptions = {
+          center: new google.maps.LatLng(-34.397, 150.644),
+          zoom: 8,
+          mapTypeId: google.maps.MapTypeId.ROADMAP
+        };
+        var map = new google.maps.Map(document.getElementById("map-canvas"),
+            mapOptions);
+        
+        var locationMarker = false;
+        var startMarker = false;
+        var endMarker = false;
+        
+        google.maps.event.addListener(map, 'mousemove', function(event) {
+          $("#currentMouseover").text(event.latLng);
+        });
+        
+        google.maps.event.addListener(map, 'mouseout', function() {
+          $("#currentMouseover").text("No mouseover.");
+        });
+        
+        $("#findMe").click(function() {
+          navigator.geolocation.getCurrentPosition(function(position) {
+              initialLocation = new google.maps.LatLng(position.coords.latitude,position.coords.longitude);
+              map.setCenter(initialLocation);
+              
+              if (!locationMarker) {
+                locationMarker = new google.maps.Marker({
+                  position: initialLocation,
+                  title: "You are here!"
+                });
+                locationMarker.setMap(map);
+                map.setZoom(15);
+              } else {
+                locationMarker.setPosition(initialLocation);
+                map.setZoom(15);
+              }
+          });
+        });
+        
+        $("#markStart").click(function () {
+          $("#controls button").prop('disabled', true);
+          
+          google.maps.event.addListener(map, 'click', function(event) {
+            if (!startMarker) {
+              startMarker = new google.maps.Marker({
+                position: event.latLng,
+                title: "Start",
+                animation: google.maps.Animation.DROP
+              });
+              startMarker.setMap(map);
+            } else {
+              startMarker.setPosition(event.latLng);
+            }
+            $("#controls button").prop('disabled', false);
+            google.maps.event.clearListeners(map, 'click');
+          });
+        });
+        
+        $("#markEnd").click(function () {
+          $("#controls button").prop('disabled', true);
+          
+          google.maps.event.addListener(map, 'click', function(event) {
+            if (!endMarker) {
+              endMarker = new google.maps.Marker({
+                position: event.latLng,
+                title: "End",
+                animation: google.maps.Animation.DROP
+              });
+              endMarker.setMap(map);
+            } else {
+              endMarker.setPosition(event.latLng);
+            }
+            $("#controls button").prop('disabled', false);
+            google.maps.event.clearListeners(map, 'click');
+          });
+        });
+      });
+      
+    </script>
+  </head>
+  <body>
+    <div id="controls">
+      <p>
+        <button id="findMe">Find me!</button>
+      </p>
+      <p>
+        <button id="markStart">Mark start</button>
+        <button id="markEnd">Mark end</button>
+      </p>
+      <p>
+        <b>Mouseover: </b><span id="currentMouseover">No mouseover.</span>
+      </p>
+    </div>
+    <div id="map-canvas"/>
+  </body>
+</html>
