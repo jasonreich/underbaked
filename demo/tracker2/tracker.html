@@ -46,6 +46,7 @@
           var strLoc = JSON.stringify(loc);
           var message = new Messaging.Message(strLoc);
           message.destinationName = "/underbaked/jsr/nodered";
+          message.qos = 1;
           client.send(message); 
           
           $("#locationData").append(
@@ -72,32 +73,6 @@
         </ul>
       </div>
     </p>
-    <script>
-    /*
-
-    var ViewModel = function() {
-      var self = this;
-
-      self.trackingData = ko.observableArray();
-
-      var locationStream = watchPosition({ enableHighAccuracy: true });
-      var subscription = null;
-
-      self.isEnabled = ko.observable(false);
-
-      self.isEnabled.subscribe(function(newValue) {
-        if (newValue) {
-          subscription = locationStream.throttle(1000).subscribe(function (pos) {
-            self.trackingData.unshift(pos);
-          });
-        } else if (subscription) {
-          subscription.dispose();
-        }
-      });
-    };
-
-    ko.applyBindings(new ViewModel());
-    */
     </script>
   </body>
 </html>
