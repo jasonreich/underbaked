@@ -38,7 +38,7 @@
           }).publish().refCount();
       };
       
-      var client = new Messaging.Client("test.mosquitto.org", 80, "underbaked-tracker");
+      var client = new Messaging.Client("broker.mqtt-dashboard.com", 8000, "underbaked-tracker");
       client.connect({onSuccess: function() {
         console.log("Client connected!");
         var locationStream = watchPosition({ enableHighAccuracy: true });
