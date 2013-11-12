@@ -1,0 +1,25 @@
+{
+  "name": "tracker2",
+  "version": "0.0.0",
+  "homepage": "https://github.com/jasonreich/underbaked",
+  "authors": [
+    "Jason Reich <jason@swiftorific.co.uk>"
+  ],
+  "description": "Tracks geolocation and publishes with MQTT",
+  "main": "app.js",
+  "license": "MIT",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "bootstrap": "~3.0.2",
+    "jquery": "~2.0.3",
+    "rxjs": "~2.2.4",
+    "paho": "git://git.eclipse.org/gitroot/paho/org.eclipse.paho.mqtt.javascript.git"
+  }
+}

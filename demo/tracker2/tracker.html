@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Geolocation tracker</title>
+
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap-theme.min.css">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+
+    <script src="./bower_components/jquery/jquery.js"></script>
+    <script src="./bower_components/rxjs/rx.js"></script>
+    <script src="./bower_components/rxjs/rx.binding.js"></script>
+    <script src="./bower_components/rxjs/rx.time.js"></script>
+    <script src="./bower_components/paho/src/mqttws31.js"></script>
+    
+    <script>
+    
+    $(function() {
+      var watchPosition = function (geolocationOptions) {
+          return Rx.Observable.create(function (observer) {
+              console.log("New stream.");
+              var watchId = window.navigator.geolocation.watchPosition(
+                  function successHandler (loc) {
+                      observer.onNext(loc);
+                  }, 
+                  function errorHandler (err) {
+                      observer.onError(err);
+                  }, 
+                  geolocationOptions);
+
+              return function () {
+                  console.log("Killed stream.");
+                  window.navigator.geolocation.clearWatch(watchId);
+              };
+          }).publish().refCount();
+      };
+      
+      var client = new Messaging.Client("test.mosquitto.org", 80, "underbaked-tracker");
+      client.connect({onSuccess: function() {
+        console.log("Client connected!");
+        var locationStream = watchPosition({ enableHighAccuracy: true });
+        locationStream.throttle(1000).subscribe(function (loc) {
+          var strLoc = JSON.stringify(loc);
+          var message = new Messaging.Message(strLoc);
+          message.destinationName = "/underbaked/jsr/nodered";
+          client.send(message); 
+          
+          $("#locationData").append(
+              $("<li></li>").html($("<pre></pre>").text(strLoc))
+            );
+        });
+      }});
+    });
+    </script>
+  </head>
+  <body class="container">
+    <p>
+      <nav class="navbar navbar-inverse" role="navigation">
+        <div class="navbar-header">
+          <a class="navbar-brand" href="#">Tracker</a>
+        </div>
+      </nav>
+    </p>
+    <p>
+      <div class="checkbox">
+        <label>
+          <input type="checkbox" data-bind="checked: isEnabled">
+          Enable tracking
+        </label>
+      </div>
+    </p>
+    <p>
+      <div class="well">
+        <h4>Location data</h4>
+        <ul id="locationData">
+          
+        </ul>
+      </div>
+    </p>
+    <script>
+    /*
+
+    var ViewModel = function() {
+      var self = this;
+
+      self.trackingData = ko.observableArray();
+
+      var locationStream = watchPosition({ enableHighAccuracy: true });
+      var subscription = null;
+
+      self.isEnabled = ko.observable(false);
+
+      self.isEnabled.subscribe(function(newValue) {
+        if (newValue) {
+          subscription = locationStream.throttle(1000).subscribe(function (pos) {
+            self.trackingData.unshift(pos);
+          });
+        } else if (subscription) {
+          subscription.dispose();
+        }
+      });
+    };
+
+    ko.applyBindings(new ViewModel());
+    */
+    </script>
+  </body>
+</html>
