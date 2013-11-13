@@ -29,18 +29,22 @@
     <script src="./bower_components/paho/src/mqttws31.js"></script>
     
     <script type="text/javascript">
+      function uuid() {
+        return Math.floor(Math.random() * 10000);
+      }
+    
       $(function() {
         google.maps.visualRefresh = true;
       
         var mapOptions = {
           center: new google.maps.LatLng(-34.397, 150.644),
-          zoom: 8,
+          zoom: 15,
           mapTypeId: google.maps.MapTypeId.ROADMAP
         };
         var map = new google.maps.Map(document.getElementById("map-canvas"),
             mapOptions);
         
-        var client = new Messaging.Client("broker.mqtt-dashboard.com", 8000, "underbaked-viewer");
+        var client = new Messaging.Client("broker.mqtt-dashboard.com", 8000, "underbaked-viewer-" + uuid());
         client.connect({onSuccess: function() {
           var mqttStream = Rx.Observable.create(function (observer) {
                 console.log("New stream.");

@@ -17,7 +17,10 @@
     <script src="./bower_components/paho/src/mqttws31.js"></script>
     
     <script>
-    
+    function uuid() {
+      return Math.floor(Math.random() * 10000);
+    }
+      
     $(function() {
       var watchPosition = function (geolocationOptions) {
           return Rx.Observable.create(function (observer) {
@@ -38,7 +41,7 @@
           }).publish().refCount();
       };
       
-      var client = new Messaging.Client("broker.mqtt-dashboard.com", 8000, "underbaked-tracker");
+      var client = new Messaging.Client("broker.mqtt-dashboard.com", 8000, "underbaked-tracker-" + uuid());
       client.connect({onSuccess: function() {
         console.log("Client connected!");
         var locationStream = watchPosition({ enableHighAccuracy: true });
