@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+  <!--
+    Obviously this is using *my* Google API key so please don't share it around.
+  
+    For this geolocation api to work, you'll need to run this file from a webserver. Easiest way is
+    to navigate to the directory in which you downloaded this file and run
+    
+    $ python -m SimpleHTTPServer
+    
+    and then go to http://localhost:8000/mapsapi.html
+  -->
+
+  <head>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+    <style type="text/css">
+      html { height: 100% }
+      body { height: 100%; margin: 0; padding: 0 }
+      #map-canvas { height: 100%; width: 100%; }
+      #controls { float: right; width: 19%; padding: 15px; }
+    </style>
+    <script type="text/javascript"
+      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA_v6EPnrRJXiWJbu8_3_jNvhToY6D3ogU&sensor=true">
+    </script>
+    <script src="./bower_components/jquery/jquery.js"></script>
+    <script src="./bower_components/rxjs/rx.js"></script>
+    <script src="./bower_components/rxjs/rx.binding.js"></script>
+    <script src="./bower_components/rxjs/rx.time.js"></script>
+    <script src="./bower_components/paho/src/mqttws31.js"></script>
+    
+    <script type="text/javascript">
+      function uuid() {
+        return Math.floor(Math.random() * 10000);
+      }
+    
+      $(function() {
+        google.maps.visualRefresh = true;
+      
+        var mapOptions = {
+          center: new google.maps.LatLng(-34.397, 150.644),
+          zoom: 15,
+          mapTypeId: google.maps.MapTypeId.ROADMAP
+        };
+        var map = new google.maps.Map(document.getElementById("map-canvas"),
+            mapOptions);
+        
+        var client = new Messaging.Client("broker.mqtt-dashboard.com", 8000, "underbaked-viewer-" + uuid());
+        client.connect({onSuccess: function() {
+          var mqttStream = Rx.Observable.create(function (observer) {
+                console.log("New stream.");
+                client.subscribe("/underbaked/jsr/nodered");
+                client.onMessageArrived = function(msg) {
+                  observer.onNext(msg);
+                };
+                
+                client.onConnectionLost = function(err) {
+                  observer.onError(err);
+                };
+
+                return function () {
+                    console.log("Killed stream.");
+                    client.disconnect();
+                };
+            }).publish().refCount();
+          
+          mqttStream.subscribe(function (msg) {
+            var parsed = $.parseJSON(msg.payloadString);
+            if (parsed) {
+              var loc = new google.maps.LatLng(parsed.coords.latitude,parsed.coords.longitude);
+              map.setCenter(loc);
+              var locationMarker = new google.maps.Marker({
+                position: loc
+              });
+              locationMarker.setMap(map);
+            } else {
+              console.log(msg);
+            }
+          });
+        }});
+      });
+    </script>
+  </head>
+  <body>
+    <div id="map-canvas"/>
+  </body>
+</html>
