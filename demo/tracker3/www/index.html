@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Geolocation tracker</title>
+
+    <link rel="stylesheet" href="./bower_components/bootstrap/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="./bower_components/bootstrap/dist/css/bootstrap-theme.min.css">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+
+    <script src="./bower_components/jquery/jquery.js"></script>
+    <script src="./bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
+    <script src="./bower_components/rxjs/rx.js"></script>
+    <script src="./bower_components/rxjs/rx.binding.js"></script>
+    <script src="./bower_components/rxjs/rx.time.js"></script>
+    <script src="./bower_components/rxjs-jquery/rx.jquery.js"></script>
+    <script src="./bower_components/paho/src/mqttws31.js"></script>
+    
+    <style>
+    body {
+      padding-top: 15px;
+    }
+    </style>
+
+    <script>
+    function uuid() {
+      return Math.floor(Math.random() * 10000);
+    };
+
+    $(function() {
+      // Connect throttle to view.
+      $("#throttleOutput").change(function() {
+        $("#throttleOutputView").text($("#throttleOutput").val() + "s");
+      });
+
+      // Define the geolocation stream
+      var watchPosition = function (geolocationOptions) {
+        return Rx.Observable.create(function (observer) {
+          var watchId = window.navigator.geolocation.watchPosition(
+            function successHandler (loc) {
+              observer.onNext(loc);
+            }, 
+            function errorHandler (err) {
+              observer.onError(err);
+            }, 
+            geolocationOptions);
+
+          return function () {
+              window.navigator.geolocation.clearWatch(watchId);
+          };
+        })
+      };
+
+      // Define debug view observer
+      var debugView = function() {
+        return Rx.Observer.create(
+          function (x) {
+            $("#locationData")
+              .text(JSON.stringify(x, null, 2))
+              .removeClass("text-danger");
+          }, function (err) {
+            $("#locationData")
+              .text(JSON.stringify(err, null, 2))
+              .addClass("text-danger");
+          }, function () {
+            $("#locationData")
+              .text("No data.")
+              .removeClass("text-danger");
+          });
+      };
+
+      // Define MQTT publishing observer
+      var mqttPublisher = function(host,port,clientid,topic) {
+        var client = new Messaging.Client(host, port, clientid);
+        var observer = new Rx.Observer.create();
+
+        client.connect({
+          onSuccess: function() {
+            observer.onNext = function (x) {
+              $("#status")
+                .addClass("label-success")
+                .removeClass("label-danger")
+                .text("Connected");
+
+              var msg = new Messaging.Message(JSON.stringify(x));
+              msg.destinationName = topic;
+              msg.qos = 1;
+              client.send(msg);
+            };
+
+            observer.onError = function (err) {
+              $("#status")
+                .removeClass("label-success")
+                .addClass("label-danger")
+                .text("Error.");
+              console.log(err);
+            };
+
+            observer.onCompleted = function () {
+              $("#status")
+                .removeClass("label-success")
+                .addClass("label-danger")
+                .text("Closed.");
+              console.log("Connection closed.");
+              client.close();
+            }
+          }
+        });
+
+        return observer;
+      };
+
+      var locationStream = watchPosition({enableHighAccuracy: true});
+      var debugSub;
+      var mqttSub;
+
+      $("#enableTracking").change(function () {
+        if ($("#enableTracking").val()) {
+          var debugSub = locationStream
+            .subscribe(debugView());
+
+          var mqttSub = locationStream
+            .throttle(1000)
+            .subscribe(mqttPublisher(
+                "broker.mqtt-dashboard.com", 8000, 
+                "underbaked-tracker-"+uuid(), "/underbaked/jsr/nodered"));
+        } else if (debugSub || mqttSub) {
+          if (debugSub) debugSub.dispose();
+          if (mqttSub) mqttSub.dispose();
+        }
+      });
+    });
+    </script>
+  </head>
+  <body class="container">
+    <p>
+      <nav class="navbar navbar-inverse" role="navigation">
+        <div class="navbar-header">
+          <a class="navbar-brand" href="#">MQTT Tracker</a>
+          <p class="navbar-text">
+            <span class="label label-success" id="status">Connected</span>
+          </p>
+        </div>
+      </nav>
+    </p>
+    <ul class="nav nav-tabs">
+      <li class="active"><a href="#controls" data-toggle="tab">Controls</a></li>
+      <li><a href="#debug" data-toggle="tab">Debug</a></li>
+      <li><a href="#map" data-toggle="tab">Map</a></li>
+    </ul>
+    
+    <div class="tab-content">
+      <div class="tab-pane active" id="controls">
+        <br/>
+        <p>
+          <label>
+            <input type="checkbox" id="enableTracking" /> Enable tracking
+          </label>
+        </p>
+        <p>
+          <label for="throttleOutput">
+            Transmission frequency
+          </label>
+          <br/>
+          <input type="range" id="throttleOutput" min="0" max="60" value="1" />
+          <span id="throttleOutputView">1s</span>
+        </p>
+      </div>
+      <div class="tab-pane" id="debug">
+        <p>
+          <pre id="locationData"></pre>
+        </p>
+      </div>
+      <div class="tab-pane" id="map"></div>
+    </div>
+  </body>
+</html>
