@@ -53,21 +53,18 @@
         })
       };
 
-      // Define debug view observer
-      var debugView = function() {
+      // Define debug view subject
+      var debugView = function(obj) {
         return Rx.Observer.create(
           function (x) {
-            $("#locationData")
-              .text(JSON.stringify(x, null, 2))
-              .removeClass("text-danger");
+            obj.text(JSON.stringify(x, null, 2))
+               .removeClass("text-danger");
           }, function (err) {
-            $("#locationData")
-              .text(JSON.stringify(err, null, 2))
-              .addClass("text-danger");
+            obj.text(JSON.stringify(err, null, 2))
+               .addClass("text-danger");
           }, function () {
-            $("#locationData")
-              .text("No data.")
-              .removeClass("text-danger");
+            obj.text("No data.")
+               .removeClass("text-danger");
           });
       };
 
