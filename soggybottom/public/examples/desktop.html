@@ -128,7 +128,7 @@
             var totalTime = moment(endTime).diff(startTime, "hours", true);
             $("#traceListing").append(
                 $("<tr>")
-                    .append($("<td>").text("A. Person"))
+                    .append($("<td>").text($(xml).find("name").text()))
                     .append($("<td>").text(moment(startTime).calendar()))
                     .append($("<td>").text(totalTime + " hours"))
                     .append($("<td>"))
@@ -168,7 +168,7 @@
     <table class="table table-hover">
       <thead>
         <tr>
-          <th>Rider</th>
+          <th>Title</th>
           <th>Date</th>
           <th>Length</th>
           <th>&nbsp;</th>
