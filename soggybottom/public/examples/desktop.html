@@ -8,7 +8,6 @@
   
   <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
   <link rel="stylesheet" href="/components/bootstrap/dist/css/bootstrap.css" />
-  <link rel="stylesheet" href="/components/flat-ui-official/css/flat-ui.css" />
   <style>
   html, body {
   	height: 100%;
@@ -18,9 +17,9 @@
   	position: absolute;
   	top: 3em;
   	right: 2em;
-  	width: 300px;
+  	width: 400px;
   	height: 65%;
-  	opacity: 0.85;
+  	opacity: 0.90;
   }
 
   #mapCanvas {
@@ -29,9 +28,17 @@
   }
   
   .icon {
+    position: relative;
+    top: -1.75em;
     height: 3em;
     opacity: 1;
     margin-right: 15px;
+  }
+  
+  .toolbar-shift {
+    position: relative;
+    top: -2px;
+    right: -0.5em;
   }
   </style>
 
@@ -56,31 +63,57 @@
 
 	<div id="mapCanvas"></div>
 	<div id="controls" class="panel panel-primary">
-		<div class="panel-heading">
-			<h3 class="panel-title">
+    <div class="panel-heading">
+      <h3 class="panel-title">
         <img src="/components/flat-ui-official/images/icons/svg/map.svg" class="mg-thumbnail pull-left icon" alt="Map Icon" />
-        SoggyBottom
+        &nbsp;
+        <div class="btn-toolbar pull-right toolbar-shift">
+          <div class="btn-group">
+            <a class="btn btn-default btn-xs">
+              <span class="glyphicon glyphicon-cog"></span>&nbsp;
+              Settings
+            </a>
+            <a class="btn btn-danger btn-xs">
+              <span class="glyphicon glyphicon-log-out"></span>&nbsp;
+              Log out
+            </a>
+          </div>
+        </div>
       </h3>
 		</div>
 		<div class="panel-body">
-      <div class="btn-toolbar pull-right">
-        <div class="btn-group">
-          <a class="btn btn-primary btn-xs">
-            <span class="glyphicon glyphicon-cog"></span> &nbsp;
-            Settings
-          </a>
-          <a class="btn btn-danger btn-xs">
-            <span class="glyphicon glyphicon-log-out"></span> &nbsp;
-            Log out
-          </a>
-        </div>
-      </div>
-      <div class="clearfix"></div>
-      <p>
-        I'm some controls.
-      </p>
+      <h4>Comparing rides:</h4>
 		</div>
+    
+    <table class="table table-hover">
+      <thead>
+        <tr>
+          <th>Rider</th>
+          <th>Date</th>
+          <th>Length</th>
+          <th>&nbsp;</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>@JoeBlogs</td>
+          <td>20/11/2013</td>
+          <td>1h 30m</td>
+          <td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td>@JaneDoe</td>
+          <td>19/11/2013</td>
+          <td>1h 30m</td>
+          <td>&nbsp;</td>
+        </tr>
+      </tbody>
+    </table>
+
+    
+    
 	</div>
 
 </body>
 </html>
+    
