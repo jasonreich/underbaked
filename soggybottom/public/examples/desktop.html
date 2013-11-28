@@ -8,6 +8,32 @@
   
   <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
   <link rel="stylesheet" href="/components/bootstrap/dist/css/bootstrap.css" />
+  
+  <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+  <script type="text/javascript">
+      google.load("visualization", "1", {packages:["corechart"]});
+      google.setOnLoadCallback(drawChart);
+      function drawChart() {
+        var data = google.visualization.arrayToDataTable([
+          ['Year', 'Sales', 'Expenses'],
+          ['2004',  1000,      400],
+          ['2005',  1170,      460],
+          ['2006',  660,       1120],
+          ['2007',  1030,      540]
+        ]);
+
+        var options = {
+          title: 'Company Performance',
+          theme: 'maximized',
+          legend: {position: 'none'}
+        };
+
+        var chart = new google.visualization.LineChart(document.getElementById('chart_div'));
+        chart.draw(data, options);
+      }
+    </script>
+  
+  
   <style>
   html, body {
   	height: 100%;
@@ -110,7 +136,12 @@
       </tbody>
     </table>
 
-    
+    <ul class="list-group">
+      <li class="list-group-item">
+        <div class="panel-body" id="chart_div">
+        </div>
+      </li>
+    </ul>
     
 	</div>
 
