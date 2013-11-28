@@ -48,6 +48,7 @@
 
   <script src="/components/jquery/jquery.js"></script>
   <script src="/components/bootstrap/dist/js/bootstrap.js"></script>
+  <script src="/components/moment/moment.js"></script>
 
   <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA_v6EPnrRJXiWJbu8_3_jNvhToY6D3ogU&sensor=true&libraries=geometry"></script>
 
@@ -94,8 +95,7 @@
                     }
 
                     var old = queue.shift();
-                    var timeDelta = (time.getTime() - old.time.getTime()) / 
-                        (60 * 60 * 1000);
+                    var timeDelta = moment(time).diff(old.time, 'hours', true);
 
                     var speed = distance / timeDelta;
                     chartData.push([time, speed]);
@@ -121,6 +121,18 @@
 
             poly.setMap(map);
             map.fitBounds(bounds);
+
+            var startTime = $(xml).find("trkpt").first().find("time").text()
+              , endTime   = $(xml).find("trkpt").last().find("time").text();
+
+            var totalTime = moment(endTime).diff(startTime, "hours", true);
+            $("#traceListing").append(
+                $("<tr>")
+                    .append($("<td>").text("A. Person"))
+                    .append($("<td>").text(moment(startTime).calendar()))
+                    .append($("<td>").text(totalTime + " hours"))
+                    .append($("<td>"))
+            );
         }
     });
   });
@@ -162,19 +174,8 @@
           <th>&nbsp;</th>
         </tr>
       </thead>
-      <tbody>
-        <tr>
-          <td>@JoeBlogs</td>
-          <td>20/11/2013</td>
-          <td>1h 30m</td>
-          <td>&nbsp;</td>
-        </tr>
-        <tr>
-          <td>@JaneDoe</td>
-          <td>19/11/2013</td>
-          <td>1h 30m</td>
-          <td>&nbsp;</td>
-        </tr>
+      <tbody id="traceListing">
+        
       </tbody>
     </table>
 

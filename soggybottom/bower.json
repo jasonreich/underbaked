@@ -9,7 +9,8 @@
   "private": true,
   "dependencies": {
     "bootstrap": "latest",
-    "flat-ui-official": "latest"
+    "flat-ui-official": "latest",
+    "moment": "latest"
   },
   "ignore": [
     "**/.*",
