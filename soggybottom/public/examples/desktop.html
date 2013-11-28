@@ -10,28 +10,6 @@
   <link rel="stylesheet" href="/components/bootstrap/dist/css/bootstrap.css" />
   
   <script type="text/javascript" src="https://www.google.com/jsapi"></script>
-  <script type="text/javascript">
-      google.load("visualization", "1", {packages:["corechart"]});
-      google.setOnLoadCallback(drawChart);
-      function drawChart() {
-        var data = google.visualization.arrayToDataTable([
-          ['Year', 'Sales', 'Expenses'],
-          ['2004',  1000,      400],
-          ['2005',  1170,      460],
-          ['2006',  660,       1120],
-          ['2007',  1030,      540]
-        ]);
-
-        var options = {
-          title: 'Company Performance',
-          theme: 'maximized',
-          legend: {position: 'none'}
-        };
-
-        var chart = new google.visualization.LineChart(document.getElementById('chart_div'));
-        chart.draw(data, options);
-      }
-    </script>
   
   
   <style>
@@ -44,8 +22,8 @@
   	top: 3em;
   	right: 2em;
   	width: 400px;
-  	height: 65%;
-  	opacity: 0.90;
+  	/*height: 65%;*/
+  	opacity: 0.95;
   }
 
   #mapCanvas {
@@ -71,9 +49,11 @@
   <script src="/components/jquery/jquery.js"></script>
   <script src="/components/bootstrap/dist/js/bootstrap.js"></script>
 
-  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA_v6EPnrRJXiWJbu8_3_jNvhToY6D3ogU&sensor=true"></script>
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA_v6EPnrRJXiWJbu8_3_jNvhToY6D3ogU&sensor=true&libraries=geometry"></script>
 
   <script>
+  google.load("visualization", "1", {packages:["corechart"]});
+
   $(function() {
   	// Initialise Google Maps
   	var mapOptions = {
@@ -81,6 +61,68 @@
         zoom: 8
   	}
   	var map = new google.maps.Map($("#mapCanvas").get(0), mapOptions);
+
+    $.ajax({
+        type: "GET",
+        url: "./my_route.gpx",
+        dataType: "xml",
+        success: function (xml) {
+            var points = []
+              , bounds = new google.maps.LatLngBounds()
+              , chartData = [["Time", "Speed"]];
+
+            var queue = [];
+            $(xml).find("trkpt").each(function() {
+                var lat = $(this).attr("lat")
+                  , lng = $(this).attr("lon")
+                  , time = new Date($(this).find("time").text());
+                
+                var p = new google.maps.LatLng(lat, lng);
+                bounds.extend(p);
+                points.push(p);
+
+                queue.push({p: p, time: time});
+
+                var windowSize = 60;
+                if (windowSize <= queue.length) {
+                    var distance = 0;
+                    for(var i=0; i < windowSize - 1; i++) {
+                        p0 = queue[i].p;
+                        p1 = queue[i+1].p;
+                        distance += google.maps.geometry.spherical
+                            .computeDistanceBetween(p0, p1) / 1000;
+                    }
+
+                    var old = queue.shift();
+                    var timeDelta = (time.getTime() - old.time.getTime()) / 
+                        (60 * 60 * 1000);
+
+                    var speed = distance / timeDelta;
+                    chartData.push([time, speed]);
+                }
+            });
+
+            var poly = new google.maps.Polyline({
+                path: points,
+                strokeColor: "blue",
+                strokeOpacity: 0.7,
+                strokeWeight: 4
+            });
+
+            var options = {
+              theme: 'maximized',
+              legend: {position: 'none'},
+              vAxis: {title: 'Speed (km/h)'},
+              hAxis: {title: 'Time'}
+            };
+
+            var chart = new google.visualization.LineChart(document.getElementById('chart_div'));
+            chart.draw(google.visualization.arrayToDataTable(chartData), options);
+
+            poly.setMap(map);
+            map.fitBounds(bounds);
+        }
+    });
   });
   </script>
 </head>
@@ -95,9 +137,9 @@
         &nbsp;
         <div class="btn-toolbar pull-right toolbar-shift">
           <div class="btn-group">
-            <a class="btn btn-default btn-xs">
-              <span class="glyphicon glyphicon-cog"></span>&nbsp;
-              Settings
+            <a class="btn btn-default btn-xs" data-toggle="modal" data-target="#addTrace">
+              <span class="glyphicon glyphicon-plus"></span>&nbsp;
+              Add trace
             </a>
             <a class="btn btn-danger btn-xs">
               <span class="glyphicon glyphicon-log-out"></span>&nbsp;
@@ -106,10 +148,10 @@
           </div>
         </div>
       </h3>
-		</div>
-		<div class="panel-body">
-      <h4>Comparing rides:</h4>
-		</div>
+    </div>
+	<div class="panel-body">
+        <h4>Comparing rides:</h4>
+	</div>
     
     <table class="table table-hover">
       <thead>
@@ -144,6 +186,24 @@
     </ul>
     
 	</div>
+
+    <div class="modal fade" id="addTrace" tabindex="-1" role="dialog" aria-labelledby="addTraceLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+            <h4 class="modal-title" id="addTrace">Add New Trace</h4>
+          </div>
+          <div class="modal-body">
+            Blah
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-primary">Save changes</button>
+          </div>
+        </div>
+      </div>
+    </div>
 
 </body>
 </html>
