@@ -104,7 +104,10 @@
           , chartData = [["Time", "Speed"]];
 
         var queue = [];
-        $(xml).find("trkpt").each(function() {
+        var $xml = $(xml);
+        var $trkpts = $xml.children("trk")
+                    .children("trkseg").children("trkpt");
+        $trkpts.each(function() {
             var lat = $(this).attr("lat")
               , lng = $(this).attr("lon")
               , time = new Date($(this).find("time").text());
@@ -153,13 +156,13 @@
         poly.setMap(map);
         map.fitBounds(bounds);
 
-        var startTime = $(xml).find("trkpt").first().find("time").text()
-          , endTime   = $(xml).find("trkpt").last().find("time").text();
+        var startTime = $trkpts.first().find("time").text()
+          , endTime   = $trkpts.last().find("time").text();
 
         var totalTime = moment(endTime).diff(startTime, "hours", true);
         $("#traceListing").append(
             $("<tr>")
-                .append($("<td>").text($(xml).find("name").text()))
+                .append($("<td>").text($xml.children("trk").children("name").text()))
                 .append($("<td>").text(moment(startTime).calendar()))
                 .append($("<td>").text(totalTime + " hours"))
                 .append($("<td>"))
