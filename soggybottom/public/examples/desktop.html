@@ -64,15 +64,14 @@
   google.load("visualization", "1", {packages:["corechart"]});
 
   $(function() {
-  	// Initialise Google Maps
-  	var mapOptions = {
+  	// Initialise Globals
+  	var map = new google.maps.Map($("#mapCanvas").get(0), {
   		center: new google.maps.LatLng(-34.397, 150.644),
-        zoom: 8
-  	}
-    
-  	var map = new google.maps.Map($("#mapCanvas").get(0), mapOptions);
-    
+      zoom: 8
+  	});
     var droppedFile = null;
+    
+    // Initialise GPX file drop
     $("#fileDropZone").on('drop', function(event) {
       event.stopPropagation();
       event.preventDefault();
@@ -98,6 +97,7 @@
       $(this).toggleClass('fileDropHover');
     });
     
+    // Function for plotting new traces from GPX data
     var plotFile = function (xml) {
         var points = []
           , bounds = new google.maps.LatLngBounds()
@@ -107,6 +107,8 @@
         var $xml = $(xml);
         var $trkpts = $xml.children("trk")
                     .children("trkseg").children("trkpt");
+        var startTime = $trkpts.first().find("time").text()
+        
         $trkpts.each(function() {
             var lat = $(this).attr("lat")
               , lng = $(this).attr("lon")
@@ -128,11 +130,12 @@
                         .computeDistanceBetween(p0, p1) / 1000;
                 }
 
+                var minutes = moment(time).diff(startTime, "minutes", true);
                 var old = queue.shift();
                 var timeDelta = moment(time).diff(old.time, 'hours', true);
 
                 var speed = distance / timeDelta;
-                chartData.push([time, speed]);
+                chartData.push([minutes, speed]);
             }
         });
 
@@ -147,7 +150,7 @@
           theme: 'maximized',
           legend: {position: 'none'},
           vAxis: {title: 'Speed (km/h)'},
-          hAxis: {title: 'Time'}
+          hAxis: {title: 'Minutes'}
         };
 
         var chart = new google.visualization.LineChart(document.getElementById('chart_div'));
@@ -156,8 +159,7 @@
         poly.setMap(map);
         map.fitBounds(bounds);
 
-        var startTime = $trkpts.first().find("time").text()
-          , endTime   = $trkpts.last().find("time").text();
+        var endTime = $trkpts.last().find("time").text();
 
         var totalTime = moment(endTime).diff(startTime, "hours", true)
                       .toFixed(2);
