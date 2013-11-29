@@ -159,7 +159,8 @@
         var startTime = $trkpts.first().find("time").text()
           , endTime   = $trkpts.last().find("time").text();
 
-        var totalTime = moment(endTime).diff(startTime, "hours", true);
+        var totalTime = moment(endTime).diff(startTime, "hours", true)
+                      .toFixed(2);
         $("#traceListing").append(
             $("<tr>")
                 .append($("<td>").text($xml.children("trk").children("name").text()))
