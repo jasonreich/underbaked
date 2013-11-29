@@ -44,6 +44,14 @@
     top: -2px;
     right: -0.5em;
   }
+  
+  .fileDropHover {
+    background-color: #fcf8e3;
+  }
+  
+  .fileDropAccepted {
+    background-color: #dff0d8;
+  }
   </style>
 
   <script src="/components/jquery/jquery.js"></script>
@@ -61,80 +69,127 @@
   		center: new google.maps.LatLng(-34.397, 150.644),
         zoom: 8
   	}
+    
   	var map = new google.maps.Map($("#mapCanvas").get(0), mapOptions);
+    
+    var droppedFile = null;
+    $("#fileDropZone").on('drop', function(event) {
+      event.stopPropagation();
+      event.preventDefault();
+      $(this).removeClass('fileDropHover');
+      
+      var files = event.originalEvent.dataTransfer.files;
+      
+      if (files.length > 0 && files[0].name.split('.').pop().toLowerCase() == "gpx") {
+        $(this)
+          .addClass('fileDropAccepted')
+          .text('Accepted file: ' + files[0].name);
+        droppedFile = files[0];
+      } else {
+        $("#fileDropError").show().fadeOut(5000);
+        droppedFile = null;
+      }
+    }).on('dragover', function(event){
+      event.stopPropagation();
+      event.preventDefault();
+    }).on('dragenter dragleave', function(event){
+      event.stopPropagation();
+      event.preventDefault();
+      $(this).toggleClass('fileDropHover');
+    });
+    
+    var plotFile = function (xml) {
+        var points = []
+          , bounds = new google.maps.LatLngBounds()
+          , chartData = [["Time", "Speed"]];
 
+        var queue = [];
+        $(xml).find("trkpt").each(function() {
+            var lat = $(this).attr("lat")
+              , lng = $(this).attr("lon")
+              , time = new Date($(this).find("time").text());
+            
+            var p = new google.maps.LatLng(lat, lng);
+            bounds.extend(p);
+            points.push(p);
+
+            queue.push({p: p, time: time});
+
+            var windowSize = 60;
+            if (windowSize <= queue.length) {
+                var distance = 0;
+                for(var i=0; i < windowSize - 1; i++) {
+                    p0 = queue[i].p;
+                    p1 = queue[i+1].p;
+                    distance += google.maps.geometry.spherical
+                        .computeDistanceBetween(p0, p1) / 1000;
+                }
+
+                var old = queue.shift();
+                var timeDelta = moment(time).diff(old.time, 'hours', true);
+
+                var speed = distance / timeDelta;
+                chartData.push([time, speed]);
+            }
+        });
+
+        var poly = new google.maps.Polyline({
+            path: points,
+            strokeColor: "red",
+            strokeOpacity: 0.7,
+            strokeWeight: 4
+        });
+
+        var options = {
+          theme: 'maximized',
+          legend: {position: 'none'},
+          vAxis: {title: 'Speed (km/h)'},
+          hAxis: {title: 'Time'}
+        };
+
+        var chart = new google.visualization.LineChart(document.getElementById('chart_div'));
+        chart.draw(google.visualization.arrayToDataTable(chartData), options);
+
+        poly.setMap(map);
+        map.fitBounds(bounds);
+
+        var startTime = $(xml).find("trkpt").first().find("time").text()
+          , endTime   = $(xml).find("trkpt").last().find("time").text();
+
+        var totalTime = moment(endTime).diff(startTime, "hours", true);
+        $("#traceListing").append(
+            $("<tr>")
+                .append($("<td>").text($(xml).find("name").text()))
+                .append($("<td>").text(moment(startTime).calendar()))
+                .append($("<td>").text(totalTime + " hours"))
+                .append($("<td>"))
+        );
+        
+        console.log("Done.");
+    };
+    
+    $("#fileDropSave").click(function() {
+      if (droppedFile) {
+        var reader = new FileReader();
+        reader.onload = function(event) {
+          console.log("Start plotting file.");
+          plotFile(event.target.result);
+        };
+        console.log("Start reading file.");
+        reader.readAsText(droppedFile);
+        
+        $("#addTrace").modal('hide');
+      }
+    });
+    
+    /*
     $.ajax({
         type: "GET",
-        url: "./my_route.gpx",
+        url: "./my_route.gpx.BAD",
         dataType: "xml",
-        success: function (xml) {
-            var points = []
-              , bounds = new google.maps.LatLngBounds()
-              , chartData = [["Time", "Speed"]];
-
-            var queue = [];
-            $(xml).find("trkpt").each(function() {
-                var lat = $(this).attr("lat")
-                  , lng = $(this).attr("lon")
-                  , time = new Date($(this).find("time").text());
-                
-                var p = new google.maps.LatLng(lat, lng);
-                bounds.extend(p);
-                points.push(p);
-
-                queue.push({p: p, time: time});
-
-                var windowSize = 60;
-                if (windowSize <= queue.length) {
-                    var distance = 0;
-                    for(var i=0; i < windowSize - 1; i++) {
-                        p0 = queue[i].p;
-                        p1 = queue[i+1].p;
-                        distance += google.maps.geometry.spherical
-                            .computeDistanceBetween(p0, p1) / 1000;
-                    }
-
-                    var old = queue.shift();
-                    var timeDelta = moment(time).diff(old.time, 'hours', true);
-
-                    var speed = distance / timeDelta;
-                    chartData.push([time, speed]);
-                }
-            });
-
-            var poly = new google.maps.Polyline({
-                path: points,
-                strokeColor: "blue",
-                strokeOpacity: 0.7,
-                strokeWeight: 4
-            });
-
-            var options = {
-              theme: 'maximized',
-              legend: {position: 'none'},
-              vAxis: {title: 'Speed (km/h)'},
-              hAxis: {title: 'Time'}
-            };
-
-            var chart = new google.visualization.LineChart(document.getElementById('chart_div'));
-            chart.draw(google.visualization.arrayToDataTable(chartData), options);
-
-            poly.setMap(map);
-            map.fitBounds(bounds);
-
-            var startTime = $(xml).find("trkpt").first().find("time").text()
-              , endTime   = $(xml).find("trkpt").last().find("time").text();
-
-            var totalTime = moment(endTime).diff(startTime, "hours", true);
-            $("#traceListing").append(
-                $("<tr>")
-                    .append($("<td>").text($(xml).find("name").text()))
-                    .append($("<td>").text(moment(startTime).calendar()))
-                    .append($("<td>").text(totalTime + " hours"))
-                    .append($("<td>"))
-            );
-        }
+        success: 
     });
+    */
   });
   </script>
 </head>
@@ -196,11 +251,14 @@
             <h4 class="modal-title" id="addTrace">Add New Trace</h4>
           </div>
           <div class="modal-body">
-            Blah
+            <div id="fileDropZone" class="well">
+              <p id="fileDropError" class="text-danger" style="display: none;">File not accepted. Must have GPX extension.</p>
+              Drop files here
+            </div>
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-            <button type="button" class="btn btn-primary">Save changes</button>
+            <button id="fileDropSave" type="button" class="btn btn-primary">Save changes</button>
           </div>
         </div>
       </div>
