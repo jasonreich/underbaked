@@ -92,9 +92,6 @@
               Log out
             </a>
             -->
-            <button type="button" class="btn btn-success btn-xs" data-toggle="button">
-                <span class="glyphicon glyphicon-play"></span> Play
-            </button>
           </div>
         </div>
       </h3>
@@ -118,6 +115,28 @@
     </table>
 
     <ul class="list-group">
+      <li class="list-group-item">
+        <div class="row">
+          <div class="col-md-5">
+            <div class="btn-group" data-toggle="buttons">
+              <button type="button" class="btn btn-success btn-sm">
+                <input type="radio" name="playPause" id="playPause_play"> 
+                <span class="glyphicon glyphicon-play"></span> Play
+              </button>
+              <button type="button" class="btn btn-danger btn-sm active">
+                <input type="radio" name="playPause" id="playPause_pause"> 
+                <span class="glyphicon glyphicon-pause"></span> Pause
+              </button>
+            </div>
+          </div>
+          <div class="col-md-7">
+            <div class="input-group has-error">
+              <input type="number" class="form-control input-sm" value="0"></input>
+              <span class="input-group-addon">minutes</span>
+            </div>
+          </div>
+        </div>
+      </li>
       <li class="list-group-item no-padding">
         <div class="with-3d-shadow with-transitions" id="chart_div">
           <svg style="height: 200px;"></svg>
