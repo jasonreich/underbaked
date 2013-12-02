@@ -8,8 +8,7 @@
   
   <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
   <link rel="stylesheet" href="/components/bootstrap/dist/css/bootstrap.css" />
-  
-  <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+  <link rel="stylesheet" href="/components/nvd3/nv.d3.css" />
   
   
   <style>
@@ -63,7 +62,6 @@
   <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA_v6EPnrRJXiWJbu8_3_jNvhToY6D3ogU&sensor=true&libraries=geometry"></script>
 
   <script>
-  google.load("visualization", "1", {packages:["corechart"]});
 
   $(function() {
   	// Initialise Globals
@@ -107,18 +105,20 @@
       .options({
         margin: {left: 0, top: 0, bottom: 0, right: 0},
         x: function(d,i) { return i},
-        //showXAxis: true,
-        //showYAxis: true,
+        showXAxis: true,
+        showYAxis: true,
         transitionDuration: 250
       })
       ;
 
       // chart sub-models (ie. xAxis, yAxis, etc) when accessed directly, return themselves, not the parent chart, so need to chain separately
       chart.xAxis
-        .axisLabel('Minutes');
+        .axisLabel('Minutes')
+        .tickFormat(d3.format("d"));
 
       chart.yAxis
-        .axisLabel('Speed (km/h)');
+        .axisLabel('Speed (km/h)')
+        .tickFormat(d3.format(".02f"));
 
       d3.select('#chart_div svg')
         .datum(chartData)
