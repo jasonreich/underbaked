@@ -171,4 +171,17 @@ $(function() {
           plotFile(txt);
       }
   });
+
+  // Initialise timeline
+  $('#playPause_play').click(function() {
+    $("#timeGroup")
+      .removeClass("has-error")
+      .addClass("has-success");
+  });
+
+  $('#playPause_pause').click(function() {
+    $("#timeGroup")
+      .addClass("has-error")
+      .removeClass("has-success");
+  });
 });
