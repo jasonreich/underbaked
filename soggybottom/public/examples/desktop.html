@@ -57,6 +57,8 @@
   <script src="/components/jquery/jquery.js"></script>
   <script src="/components/bootstrap/dist/js/bootstrap.js"></script>
   <script src="/components/moment/moment.js"></script>
+  <script src="/components/d3/d3.js"></script>
+  <script src="/components/nvd3/nv.d3.js"></script>
 
   <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA_v6EPnrRJXiWJbu8_3_jNvhToY6D3ogU&sensor=true&libraries=geometry"></script>
 
@@ -97,18 +99,49 @@
       $(this).toggleClass('fileDropHover');
     });
     
+    // Initialise chart
+    var chart;
+    var chartData = [];
+    nv.addGraph(function() {
+      chart = nv.models.lineChart()
+      .options({
+        margin: {left: 0, top: 0, bottom: 0, right: 0},
+        x: function(d,i) { return i},
+        //showXAxis: true,
+        //showYAxis: true,
+        transitionDuration: 250
+      })
+      ;
+
+      // chart sub-models (ie. xAxis, yAxis, etc) when accessed directly, return themselves, not the parent chart, so need to chain separately
+      chart.xAxis
+        .axisLabel('Minutes');
+
+      chart.yAxis
+        .axisLabel('Speed (km/h)');
+
+      d3.select('#chart_div svg')
+        .datum(chartData)
+        .call(chart);
+
+      nv.utils.windowResize(chart.update);
+
+      return chart;
+    });
+    
     // Function for plotting new traces from GPX data
     var plotFile = function (xml) {
         var points = []
           , bounds = new google.maps.LatLngBounds()
-          , chartData = [["Time", "Speed"]];
+          , tempChartData = [];
 
-        var queue = [];
         var $xml = $(xml);
         var $trkpts = $xml.children("trk")
                     .children("trkseg").children("trkpt");
         var startTime = $trkpts.first().find("time").text()
-        
+
+        var queue = [];        
+        var lastMinutes = -1;
         $trkpts.each(function() {
             var lat = $(this).attr("lat")
               , lng = $(this).attr("lon")
@@ -135,7 +168,10 @@
                 var timeDelta = moment(time).diff(old.time, 'hours', true);
 
                 var speed = distance / timeDelta;
-                chartData.push([minutes, speed]);
+                if (1 <= minutes - lastMinutes) {
+                  tempChartData.push({x: minutes, y: speed});
+                  lastMinutes = minutes;
+                };
             }
         });
 
@@ -145,17 +181,11 @@
             strokeOpacity: 0.7,
             strokeWeight: 4
         });
-
-        var options = {
-          theme: 'maximized',
-          legend: {position: 'none'},
-          vAxis: {title: 'Speed (km/h)'},
-          hAxis: {title: 'Minutes'}
-        };
-
-        var chart = new google.visualization.LineChart(document.getElementById('chart_div'));
-        chart.draw(google.visualization.arrayToDataTable(chartData), options);
-
+        
+        var traceName = $xml.children("trk").children("name").text();
+        chartData.push({values: tempChartData, key: traceName, color: "red"});
+        chart.update();
+        
         poly.setMap(map);
         map.fitBounds(bounds);
 
@@ -165,7 +195,7 @@
                       .toFixed(2);
         $("#traceListing").append(
             $("<tr>")
-                .append($("<td>").text($xml.children("trk").children("name").text()))
+                .append($("<td>").text(traceName))
                 .append($("<td>").text(moment(startTime).calendar()))
                 .append($("<td>").text(totalTime + " hours"))
                 .append($("<td>"))
@@ -243,6 +273,7 @@
     <ul class="list-group">
       <li class="list-group-item">
         <div class="panel-body" id="chart_div">
+          <svg style="height: 200px;"></svg>
         </div>
       </li>
     </ul>

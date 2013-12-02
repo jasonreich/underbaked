@@ -10,7 +10,8 @@
   "dependencies": {
     "bootstrap": "latest",
     "flat-ui-official": "latest",
-    "moment": "latest"
+    "moment": "latest",
+    "nvd3": "latest"
   },
   "ignore": [
     "**/.*",
