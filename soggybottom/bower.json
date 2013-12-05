@@ -12,7 +12,8 @@
     "flat-ui-official": "latest",
     "moment": "latest",
     "nvd3": "latest",
-    "knockout.js": "latest"
+    "knockout.js": "latest",
+    "jquery-ui": "latest"
   },
   "ignore": [
     "**/.*",

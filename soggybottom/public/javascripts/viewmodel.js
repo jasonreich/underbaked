@@ -59,6 +59,11 @@ var ViewModel = function(map, chart, chartData) {
 
 // JQuery onLoad
 $(function() {
+  // Make panel dragable
+  $("#controls").draggable({
+    handle: ".panel-heading"
+  });
+
   // Initialise map
   var map = new google.maps.Map($('#mapCanvas').get(0), {
     center: new google.maps.LatLng(53.958333, -1.080278),
