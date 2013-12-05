@@ -1,4 +1,4 @@
-/* global $, ko, google, nv, d3 */
+/* global $, ko, google, nv, d3, moment */
 'use strict';
 
 // Color pallet
@@ -30,11 +30,11 @@ var Trace = function() {
     return moment(self.startDate).calendar();
   });
   self.visibleView = ko.computed(function() {
-    return self.visible() ? "&#9673;" : "&#9678;";
+    return self.visible() ? '&#9673;' : '&#9678;';
   });
   self.totalTimeView = ko.computed(function() {
     if (self.endDate()) {
-      return moment(self.endDate()).diff(startDate, 'hours', true) + ' hours';
+      return moment(self.endDate()).diff(self.startDate, 'hours', true) + ' hours';
     } else {
       return '<span class="text-success live">LIVE...</span>';
     }
@@ -43,7 +43,7 @@ var Trace = function() {
   // Methods
   self.toggleVisible = function() {
     self.visible(!self.visible());
-  }
+  };
 };
 
 // Page ViewModel
@@ -60,8 +60,8 @@ var ViewModel = function(map, chart, chartData) {
 // JQuery onLoad
 $(function() {
   // Make panel dragable
-  $("#controls").draggable({
-    handle: ".panel-heading"
+  $('#controls').draggable({
+    handle: '.panel-heading'
   });
 
   // Initialise map
