@@ -60,16 +60,21 @@
   .fileDropAccepted {
     background-color: #dff0d8;
   }
+
+  .live {
+    font-style: italic;
+  }
   </style>
 
   <script src="/components/jquery/jquery.js"></script>
+  <script src="/components/knockout.js/knockout.js"></script>
   <script src="/components/bootstrap/dist/js/bootstrap.js"></script>
   <script src="/components/moment/moment.js"></script>
   <script src="/components/d3/d3.js"></script>
   <script src="/components/nvd3/nv.d3.js"></script>
   <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA_v6EPnrRJXiWJbu8_3_jNvhToY6D3ogU&sensor=true&libraries=geometry"></script>
 
-  <script src="/javascripts/display.js"></script>
+  <script src="/javascripts/viewmodel.js"></script>
 </head>
 
 <body>
@@ -86,12 +91,6 @@
               <span class="glyphicon glyphicon-plus"></span>&nbsp;
               Add trace
             </a>
-            <!--
-            <a class="btn btn-danger btn-xs">
-              <span class="glyphicon glyphicon-log-out"></span>&nbsp;
-              Log out
-            </a>
-            -->
           </div>
         </div>
       </h3>
@@ -109,36 +108,17 @@
           <th>Length</th>
         </tr>
       </thead>
-      <tbody id="traceListing">
-        
+      <tbody data-bind="foreach: traces">
+        <tr data-bind="click: toggleVisible">
+          <td class="symbol" data-bind="style: {color: color}, html: visibleView" />
+          <td data-bind="text: title" />
+          <td data-bind="text: startDateView" />
+          <td data-bind="html: totalTimeView" />
+        </tr>
       </tbody>
     </table>
 
     <ul class="list-group">
-      <li class="list-group-item">
-        <div class="row">
-          <div class="col-md-5">
-            <div class="btn-group" data-toggle="buttons">
-              <button type="button" class="btn btn-success btn-sm" id="playPause_play">
-                <input type="radio" name="playPause"> 
-                <span class="glyphicon glyphicon-play"></span> Play
-              </button>
-              <button type="button" class="btn btn-danger btn-sm active" id="playPause_pause">
-                <input type="radio" name="playPause"> 
-                <span class="glyphicon glyphicon-pause"></span> Pause
-              </button>
-            </div>
-          </div>
-          <div class="col-md-7">
-            <div class="input-group has-error" id="timeGroup">
-              <input type="number" class="form-control input-sm" value="0" id="timeMin"></input>
-              <span class="input-group-addon">m</span>
-              <input type="number" class="form-control input-sm" value="0" id="timeSec"></input>
-              <span class="input-group-addon">s</span>
-            </div>
-          </div>
-        </div>
-      </li>
       <li class="list-group-item no-padding">
         <div class="with-3d-shadow with-transitions" id="chart_div">
           <svg style="height: 200px;"></svg>
@@ -163,7 +143,7 @@
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-            <button id="fileDropSave" type="button" class="btn btn-primary">Save changes</button>
+            <button id="fileDropSave" type="button" data-dismiss="modal" data-bind="click: addTrace" class="btn btn-primary">Save changes</button>
           </div>
         </div>
       </div>
