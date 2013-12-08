@@ -1,29 +1,32 @@
+/* global $, google, nv, d3, moment, console */
+'use strict';
+
 $(function() {
   // Initialise Globals
-  var map = new google.maps.Map($("#mapCanvas").get(0), {
+  var map = new google.maps.Map($('#mapCanvas').get(0), {
     center: new google.maps.LatLng(-34.397, 150.644),
       zoom: 8
   });
   var droppedFile = null;
 
-  var colorSet = ["#E84A21", "#5BFF75", "#FFF84E", "#E80C7A", "#1146FF"];
+  var colorSet = ['#E84A21', '#5BFF75', '#FFF84E', '#E80C7A', '#1146FF'];
   var currentColor = 0;
 
   // Initialise GPX file drop
-  $("#fileDropZone").on('drop', function(event) {
+  $('#fileDropZone').on('drop', function(event) {
     event.stopPropagation();
     event.preventDefault();
     $(this).removeClass('fileDropHover');
     
     var files = event.originalEvent.dataTransfer.files;
     
-    if (files.length > 0 && files[0].name.split('.').pop().toLowerCase() == "gpx") {
+    if (files.length > 0 && files[0].name.split('.').pop().toLowerCase() == 'gpx') {
       $(this)
         .addClass('fileDropAccepted')
         .text('Accepted file: ' + files[0].name);
       droppedFile = files[0];
     } else {
-      $("#fileDropError").show().fadeOut(5000);
+      $('#fileDropError').show().fadeOut(5000);
       droppedFile = null;
     }
   }).on('dragover', function(event){
@@ -41,7 +44,7 @@ $(function() {
   nv.addGraph(function() {
     chart = nv.models.lineChart()
       .options({
-        x: function(d,i) { return i},
+        x: function(d,i) { return i; },
         showXAxis: true,
         showYAxis: true,
         showLegend: false,
@@ -51,12 +54,12 @@ $(function() {
 
     chart.xAxis
       .axisLabel('Minutes')
-      .tickFormat(d3.format("d"));
+      .tickFormat(d3.format('d'));
 
     chart.yAxis
       .axisLabel('Speed (km/h)')
       .axisLabelDistance(30)
-      .tickFormat(d3.format(".02f"));
+      .tickFormat(d3.format('.02f'));
 
     d3.select('#chart_div svg')
       .datum(chartData)
@@ -69,21 +72,21 @@ $(function() {
 
   // Function for plotting new traces from GPX data
   var plotFile = function (xml) {
-      var points = []
-        , bounds = new google.maps.LatLngBounds()
-        , tempChartData = [];
+      var points = [];
+      var bounds = new google.maps.LatLngBounds();
+      var tempChartData = [];
 
       var $xml = $(xml);
-      var $trkpts = $xml.children("trk")
-                  .children("trkseg").children("trkpt");
-      var startTime = $trkpts.first().find("time").text()
+      var $trkpts = $xml.children('trk')
+                  .children('trkseg').children('trkpt');
+      var startTime = $trkpts.first().find('time').text();
 
-      var queue = [];        
+      var queue = [];
       var lastMinutes = -1;
       $trkpts.each(function() {
-          var lat = $(this).attr("lat")
-            , lng = $(this).attr("lon")
-            , time = new Date($(this).find("time").text());
+          var lat = $(this).attr('lat');
+          var lng = $(this).attr('lon');
+          var time = new Date($(this).find('time').text());
           
           var p = new google.maps.LatLng(lat, lng);
           bounds.extend(p);
@@ -95,13 +98,13 @@ $(function() {
           if (windowSize <= queue.length) {
               var distance = 0;
               for(var i=0; i < windowSize - 1; i++) {
-                  p0 = queue[i].p;
-                  p1 = queue[i+1].p;
+                  var p0 = queue[i].p;
+                  var p1 = queue[i+1].p;
                   distance += google.maps.geometry.spherical
                       .computeDistanceBetween(p0, p1) / 1000;
               }
 
-              var minutes = moment(time).diff(startTime, "minutes", true);
+              var minutes = moment(time).diff(startTime, 'minutes', true);
               var old = queue.shift();
               var timeDelta = moment(time).diff(old.time, 'hours', true);
 
@@ -109,7 +112,7 @@ $(function() {
               if (1 <= minutes - lastMinutes) {
                 tempChartData.push({x: minutes, y: speed});
                 lastMinutes = minutes;
-              };
+              }
           }
       });
 
@@ -122,10 +125,10 @@ $(function() {
       });
       
       
-      var traceName = $xml.children("trk").children("name").text();
+      var traceName = $xml.children('trk').children('name').text();
       chartData.push({
-          values: tempChartData, 
-          key: traceName, 
+          values: tempChartData,
+          key: traceName,
           color: thisColor
       });
       chart.update();
@@ -133,40 +136,39 @@ $(function() {
       poly.setMap(map);
       map.fitBounds(bounds);
 
-      var endTime = $trkpts.last().find("time").text();
+      var endTime = $trkpts.last().find('time').text();
 
-      var totalTime = moment(endTime).diff(startTime, "hours", true)
+      var totalTime = moment(endTime).diff(startTime, 'hours', true)
                     .toFixed(2);
-      $("#traceListing").append(
-          $("<tr>")
-              .append($("<td class='symbol'>").html("&#9679;")
-                  .css("color", thisColor))
-              .append($("<td>").text(traceName))
-              .append($("<td>").text(moment(startTime).calendar()))
-              .append($("<td>").text(totalTime + " hours"))
+      $('#traceListing').append(
+          $('<tr>')
+              .append($('<td class="symbol">').html('&#9679;')
+                  .css('color', thisColor))
+              .append($('<td>').text(traceName))
+              .append($('<td>').text(moment(startTime).calendar()))
+              .append($('<td>').text(totalTime + ' hours'))
       );
       
-      console.log("Done.");
-  };
+      console.log('Done.'); };
 
-  $("#fileDropSave").click(function() {
+  $('#fileDropSave').click(function() {
     if (droppedFile) {
       var reader = new FileReader();
       reader.onload = function(event) {
-        console.log("Start plotting file.");
+        console.log('Start plotting file.');
         plotFile(event.target.result);
       };
-      console.log("Start reading file.");
+      console.log('Start reading file.');
       reader.readAsText(droppedFile);
       
-      $("#addTrace").modal('hide');
+      $('#addTrace').modal('hide');
     }
   });
 
   $.ajax({
-      type: "GET",
-      url: "./my_route.gpx",
-      dataType: "text",
+      type: 'GET',
+      url: './my_route.gpx',
+      dataType: 'text',
       success: function(txt) {
           plotFile(txt);
       }
@@ -177,30 +179,30 @@ $(function() {
   $('#playPause_play').click(function() {
     if (!stepInterval) {
       stepInterval = window.setInterval(function() {
-        var min = parseInt($("#timeMin").val())
-        var sec = parseInt($("#timeSec").val()) + 1;
+        var min = parseInt($('#timeMin').val());
+        var sec = parseInt($('#timeSec').val()) + 1;
 
         if (sec >= 60) {
           min += Math.floor(sec / 60);
           sec = sec % 60;
         }
 
-        $("#timeMin").val(min);
-        $("#timeSec").val(sec);
+        $('#timeMin').val(min);
+        $('#timeSec').val(sec);
       }, 1000);
-      $("#timeGroup")
-        .removeClass("has-error")
-        .addClass("has-success");
-    };
+      $('#timeGroup')
+        .removeClass('has-error')
+        .addClass('has-success');
+    }
   });
 
   $('#playPause_pause').click(function() {
     if (stepInterval) {
       window.clearInterval(stepInterval);
       stepInterval=null;
-      $("#timeGroup")
-        .addClass("has-error")
-        .removeClass("has-success");
+      $('#timeGroup')
+        .addClass('has-error')
+        .removeClass('has-success');
     }
   });
 
