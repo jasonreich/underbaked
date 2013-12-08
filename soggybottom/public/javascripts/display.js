@@ -63,7 +63,7 @@ $(function() {
       var reader = new FileReader();
       reader.onload = function(event) {
         console.log('Start plotting file.');
-        plotFile(event.target.result);
+        plotFile(event.target.result, $('#mqttSuffix').val());
       };
       console.log('Start reading file.');
       reader.readAsText(droppedFile);
@@ -258,7 +258,7 @@ $(function() {
   };
 
   // Function for plotting new traces from GPX data
-  var plotFile = function (xml) {
+  var plotFile = function (xml, mqttSuffix) {
       var trace = new Trace();
 
       var $xml = $(xml);
@@ -276,6 +276,10 @@ $(function() {
 
       trace.setTitle($xml.children('trk').children('name').text());
       chart.update();
+
+      if (mqttSuffix !== "") {
+        trace.subscribeFeed(mqttSuffix);
+      }
 
       console.log('Done.');
     };
