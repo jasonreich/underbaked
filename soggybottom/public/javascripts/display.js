@@ -1,4 +1,4 @@
-/* global $, google, nv, d3, moment, console */
+/* global $, google, nv, d3, moment, console, Messaging */
 'use strict';
 
 $(function() {
@@ -120,6 +120,47 @@ $(function() {
   $('#controls').draggable({
     handle: '.panel-heading'
   });
+
+  // MQTT Client
+  // -----------
+
+  // Generate a five character client ID suffix.
+  var clientID = (function() {
+    var id = 'viewer-';
+    for(var i = 0; i < 10; i++) {
+      id += Math.floor(Math.random() * 16).toString(16);
+    }
+    return id;
+  })();
+
+  // Dictionary for message handlers.
+  var handlerDictionary = {};
+
+  // Initialise a conneciton to the MessageSight broker.
+  var mqttClient = new Messaging.Client('5.153.17.246', 13531, clientID);
+  console.log('Connecting with client ID: ' + clientID);
+  mqttClient.connect({
+    onSuccess: function() {
+      console.log('MQTT Client Connected');
+      mqttClient.subscribe('/test/debug')
+    }
+  });
+
+  // On message arrival, lookup trace in dictionary for handler.
+  mqttClient.onMessageArrived = function(msg) {
+    var dest = msg.getDestinationName();
+    if (dest.indexOf("/trace/") === 0) {
+      var traceID = dest.substr("/trace/".length);
+      if (traceID in handlerDictionary) {
+        handlerDictionary[traceID](JSON.parse(msg.getPayloadString()));
+      } else {
+        throw("Unknown traceID:" + traceID);
+      }
+    } else {
+      console.log("Unknown topic:")
+      console.log(msg);
+    }
+  };
 
   // Plotting traces
   // ===============
