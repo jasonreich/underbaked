@@ -96,9 +96,15 @@ $(function() {
     return chart;
   });
 
+  // Dragable Panel
+  // --------------
+  // Use JQuery UI to drag panel
+  $('#controls').draggable({
+    handle: '.panel-heading'
+  });
+
   // Plotting traces
   // ===============
-  
   // Function for plotting new traces from GPX data
   var plotFile = function (xml) {
       var points = [];
@@ -202,40 +208,4 @@ $(function() {
   //         plotFile(txt);
   //     }
   // });
-
-  // Initialise timeline
-  var stepInterval;
-  $('#playPause_play').click(function() {
-    if (!stepInterval) {
-      stepInterval = window.setInterval(function() {
-        var min = parseInt($('#timeMin').val());
-        var sec = parseInt($('#timeSec').val()) + 1;
-
-        if (sec >= 60) {
-          min += Math.floor(sec / 60);
-          sec = sec % 60;
-        }
-
-        $('#timeMin').val(min);
-        $('#timeSec').val(sec);
-      }, 1000);
-      $('#timeGroup')
-        .removeClass('has-error')
-        .addClass('has-success');
-    }
-  });
-
-  $('#playPause_pause').click(function() {
-    if (stepInterval) {
-      window.clearInterval(stepInterval);
-      stepInterval=null;
-      $('#timeGroup')
-        .addClass('has-error')
-        .removeClass('has-success');
-    }
-  });
-
-  $('#controls').draggable({
-    handle: '.panel-heading'
-  });
 });
