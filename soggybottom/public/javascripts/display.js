@@ -142,22 +142,23 @@ $(function() {
   mqttClient.connect({
     onSuccess: function() {
       console.log('MQTT Client Connected');
-      mqttClient.subscribe('/test/debug')
+      mqttClient.subscribe('/test/debug');
+      mqttClient.subscribe('/trace/jason');
     }
   });
 
   // On message arrival, lookup trace in dictionary for handler.
   mqttClient.onMessageArrived = function(msg) {
-    var dest = msg.getDestinationName();
-    if (dest.indexOf("/trace/") === 0) {
-      var traceID = dest.substr("/trace/".length);
+    var dest = msg.destinationName;
+    if (dest.indexOf('/trace/') === 0) {
+      var traceID = dest.substr('/trace/'.length);
       if (traceID in handlerDictionary) {
-        handlerDictionary[traceID](JSON.parse(msg.getPayloadString()));
+        handlerDictionary[traceID](JSON.parse(msg.payloadString));
       } else {
-        throw("Unknown traceID:" + traceID);
+        console.log('Unknown traceID: ' + traceID);
       }
     } else {
-      console.log("Unknown topic:")
+      console.log('Unknown topic:');
       console.log(msg);
     }
   };
