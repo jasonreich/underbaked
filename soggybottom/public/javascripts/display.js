@@ -5,7 +5,7 @@ $(function() {
       zoom: 8
   });
   var droppedFile = null;
-  
+
   var colorSet = ["#E84A21", "#5BFF75", "#FFF84E", "#E80C7A", "#1146FF"];
   var currentColor = 0;
 
@@ -202,5 +202,9 @@ $(function() {
         .addClass("has-error")
         .removeClass("has-success");
     }
+  });
+
+  $('#controls').draggable({
+    handle: '.panel-heading'
   });
 });
