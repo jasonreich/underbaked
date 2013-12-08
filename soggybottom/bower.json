@@ -12,7 +12,8 @@
     "flat-ui-official": "latest",
     "moment": "latest",
     "nvd3": "latest",
-    "jquery-ui": "latest"
+    "jquery-ui": "latest",
+    "paho": "git://git.eclipse.org/gitroot/paho/org.eclipse.paho.mqtt.javascript.git"
   },
   "ignore": [
     "**/.*",

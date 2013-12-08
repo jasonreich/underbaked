@@ -9,69 +9,15 @@
   <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
   <link rel="stylesheet" href="/components/bootstrap/dist/css/bootstrap.css" />
   <link rel="stylesheet" href="/components/nvd3/nv.d3.css" />
+  <link rel="stylesheet" href="/stylesheets/style.css" />
   
-  <style>
-  html, body {
-  	height: 100%;
-  }
-
-  #controls {
-  	position: absolute;
-  	top: 3em;
-  	right: 2em;
-  	width: 400px;
-  	/*height: 65%;*/
-  	opacity: 0.95;
-  }
-
-  #controls .panel-heading {
-    cursor: move;
-  }
-
-  td.symbol {
-    text-align: right;
-    vertical-align: middle;
-    font-weight: bold;    
-  }
-
-  .no-padding {
-    padding: 0;
-  }
-
-  #mapCanvas {
-  	width: 100%;
-  	height: 100%;
-  }
-  
-  .icon {
-    position: relative;
-    top: -1.75em;
-    height: 3em;
-    opacity: 1;
-    margin-right: 15px;
-  }
-  
-  .toolbar-shift {
-    position: relative;
-    top: -2px;
-    right: -0.5em;
-  }
-  
-  .fileDropHover {
-    background-color: #fcf8e3;
-  }
-  
-  .fileDropAccepted {
-    background-color: #dff0d8;
-  }
-  </style>
-
   <script src="/components/jquery/jquery.js"></script>
   <script src="/components/jquery-ui/ui/jquery-ui.js"></script>
   <script src="/components/bootstrap/dist/js/bootstrap.js"></script>
   <script src="/components/moment/moment.js"></script>
   <script src="/components/d3/d3.js"></script>
   <script src="/components/nvd3/nv.d3.js"></script>
+  <script src="/components/paho/src/mqttws31.js"></script>
   <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA_v6EPnrRJXiWJbu8_3_jNvhToY6D3ogU&sensor=true&libraries=geometry"></script>
 
   <script src="/javascripts/display.js"></script>

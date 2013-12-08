@@ -2,18 +2,36 @@
 'use strict';
 
 $(function() {
-  /** INITIALISE GLOBALS **/
-  
+  // Initialise Globals
+  // ==================
+
+  // Google Maps
+  // -----------
+  // Google Maps object, centred on York.
   var map = new google.maps.Map($('#mapCanvas').get(0), {
     center: new google.maps.LatLng(53.958333, -1.080278),
     zoom: 11
   });
+
+  // Trace Colors
+  // ------------
+  // Function that returns next color from cyclical queue.
+  var nextColor = (function() {
+    var colorQueue = ['#E84A21', '#5BFF75', '#FFF84E', '#E80C7A', '#1146FF'];
+    return function() {
+      var temp = colorQueue.shift();
+      colorQueue.push(temp);
+      return temp;
+    };
+  })();
+
+  // GPX File Drop
+  // -------------
+
+  // Variable that remembers dropped file
   var droppedFile = null;
 
-  var colorSet = ['#E84A21', '#5BFF75', '#FFF84E', '#E80C7A', '#1146FF'];
-  var currentColor = 0;
-
-  // Initialise GPX file drop
+  // Configure file drop DOM events
   $('#fileDropZone').on('drop', function(event) {
     event.stopPropagation();
     event.preventDefault();
@@ -39,9 +57,16 @@ $(function() {
     $(this).toggleClass('fileDropHover');
   });
 
-  // Initialise chart
+  // Speed vs. Time Chart
+  // --------------------
+
+  // Chart object.
   var chart;
+
+  // Chart data object.
   var chartData = [];
+
+  // Create chart.
   nv.addGraph(function() {
     chart = nv.models.lineChart()
       .options({
@@ -71,6 +96,9 @@ $(function() {
     return chart;
   });
 
+  // Plotting traces
+  // ===============
+  
   // Function for plotting new traces from GPX data
   var plotFile = function (xml) {
       var points = [];
@@ -117,7 +145,7 @@ $(function() {
           }
       });
 
-      var thisColor = colorSet[currentColor++];
+      var thisColor = nextColor();
       var poly = new google.maps.Polyline({
           path: points,
           strokeColor: thisColor,
