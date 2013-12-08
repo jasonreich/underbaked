@@ -57,6 +57,24 @@ $(function() {
     $(this).toggleClass('fileDropHover');
   });
 
+  // Save button on file drop.
+  $('#fileDropSave').click(function() {
+    if (droppedFile) {
+      var reader = new FileReader();
+      reader.onload = function(event) {
+        console.log('Start plotting file.');
+        plotFile(event.target.result);
+      };
+      console.log('Start reading file.');
+      reader.readAsText(droppedFile);
+      $('#fileDropZone')
+        .removeClass('fileDropAccepted')
+        .text('Drop files here');
+      
+      $('#addTrace').modal('hide');
+    }
+  });
+
   // Speed vs. Time Chart
   // --------------------
 
@@ -105,107 +123,116 @@ $(function() {
 
   // Plotting traces
   // ===============
+  // Bounds for map data.
+  var mapBounds = new google.maps.LatLngBounds();
+
+  // Trace Class
+  // -----------
+  var Trace = function() {
+    var self = this;
+
+    // Color representing this trace.
+    var color = nextColor();
+
+    // Table row for this trace.
+    var symbolCell = $('<td class="symbol">').html('&#9679;')
+                   .css('color', color);
+    var nameCell = $('<td class="text-success">Loading...</td>');
+    var startCell = $('<td>');
+    var totalCell = $('<td class="text-success">Live</td>');
+    $('#traceListing').append(
+      $('<tr>').append(symbolCell, nameCell, startCell, totalCell)
+    );
+
+    // Polyline for Google Maps.
+    self.polyLine = new google.maps.Polyline({
+      strokeColor: color,
+      strokeOpacity: 0.7,
+      strokeWeight: 4,
+      map: map
+    });
+
+    // Chart data for nvd3.
+    self.seriesData = {
+      values: [],
+      key: 'Loading...',
+      color: color
+    };
+    chartData.push(self.seriesData);
+
+    // Change title of the trace.
+    self.setTitle = function(title) {
+      nameCell.text(title);
+      self.seriesData.key = title;
+    };
+
+    // Add datapoint.
+    var lastMinute = null;
+    self.addDataPoint = function(time, point) {
+      // Add to polyline
+      var path = self.polyLine.getPath();
+      path.push(point);
+      self.polyLine.setPath(path);
+
+      // If initial datapoint, set start-time
+      if (path.length === 1) {
+        self.startTime = moment(time);
+        startCell.text(self.startTime.calendar());
+      }
+
+      // Extend map bounds
+      mapBounds.extend(point);
+      map.fitBounds(mapBounds);
+
+      // Add to Speed vs. Time graph.
+      if (lastMinute) {
+        if (1 <= moment(time).diff(lastMinute.time, 'minutes', true)) {
+          var timeDelta = moment(time).diff(lastMinute.time, 'hours', true);
+          var distDelta = google.maps.geometry.spherical
+                        .computeDistanceBetween(lastMinute.point, point) / 1000;
+          var speed = distDelta / timeDelta;
+
+          self.seriesData.values.push({
+            x: moment(lastMinute.time).diff(self.startTime, 'minutes', true),
+            y: speed
+          });
+          lastMinute = {time: time, point: point};
+        }
+      } else {
+        lastMinute = {time: time, point: point};
+      }
+    };
+  };
+
   // Function for plotting new traces from GPX data
   var plotFile = function (xml) {
-      var points = [];
-      var bounds = new google.maps.LatLngBounds();
-      var tempChartData = [];
+      var trace = new Trace();
 
       var $xml = $(xml);
       var $trkpts = $xml.children('trk')
                   .children('trkseg').children('trkpt');
-      var startTime = $trkpts.first().find('time').text();
 
-      var queue = [];
-      var lastMinutes = -1;
       $trkpts.each(function() {
           var lat = $(this).attr('lat');
           var lng = $(this).attr('lon');
           var time = new Date($(this).find('time').text());
           
           var p = new google.maps.LatLng(lat, lng);
-          bounds.extend(p);
-          points.push(p);
-
-          queue.push({p: p, time: time});
-
-          var windowSize = 60;
-          if (windowSize <= queue.length) {
-              var distance = 0;
-              for(var i=0; i < windowSize - 1; i++) {
-                  var p0 = queue[i].p;
-                  var p1 = queue[i+1].p;
-                  distance += google.maps.geometry.spherical
-                      .computeDistanceBetween(p0, p1) / 1000;
-              }
-
-              var minutes = moment(time).diff(startTime, 'minutes', true);
-              var old = queue.shift();
-              var timeDelta = moment(time).diff(old.time, 'hours', true);
-
-              var speed = distance / timeDelta;
-              if (1 <= minutes - lastMinutes) {
-                tempChartData.push({x: minutes, y: speed});
-                lastMinutes = minutes;
-              }
-          }
+          trace.addDataPoint(time, p);
       });
 
-      var thisColor = nextColor();
-      var poly = new google.maps.Polyline({
-          path: points,
-          strokeColor: thisColor,
-          strokeOpacity: 0.7,
-          strokeWeight: 4
-      });
-      
-      
-      var traceName = $xml.children('trk').children('name').text();
-      chartData.push({
-          values: tempChartData,
-          key: traceName,
-          color: thisColor
-      });
+      trace.setTitle($xml.children('trk').children('name').text());
       chart.update();
-      
-      poly.setMap(map);
-      map.fitBounds(bounds);
 
-      var endTime = $trkpts.last().find('time').text();
+      console.log('Done.');
+    };
 
-      var totalTime = moment(endTime).diff(startTime, 'hours', true)
-                    .toFixed(2);
-      $('#traceListing').append(
-          $('<tr>')
-              .append($('<td class="symbol">').html('&#9679;')
-                  .css('color', thisColor))
-              .append($('<td>').text(traceName))
-              .append($('<td>').text(moment(startTime).calendar()))
-              .append($('<td>').text(totalTime + ' hours'))
-      );
-      
-      console.log('Done.'); };
-
-  $('#fileDropSave').click(function() {
-    if (droppedFile) {
-      var reader = new FileReader();
-      reader.onload = function(event) {
-        console.log('Start plotting file.');
-        plotFile(event.target.result);
-      };
-      console.log('Start reading file.');
-      reader.readAsText(droppedFile);
-      
-      $('#addTrace').modal('hide');
-    }
+  $.ajax({
+      type: 'GET',
+      url: './my_route.gpx',
+      dataType: 'text',
+      success: function(txt) {
+          plotFile(txt);
+      }
   });
-
-  // $.ajax({
-  //     type: 'GET',
-  //     url: './my_route.gpx',
-  //     dataType: 'text',
-  //     success: function(txt) {
-  //         plotFile(txt);
-  //     }
-  // });
 });
