@@ -11,7 +11,8 @@
     "bootstrap": "latest",
     "flat-ui-official": "latest",
     "moment": "latest",
-    "nvd3": "latest"
+    "nvd3": "latest",
+    "jquery-ui": "latest"
   },
   "ignore": [
     "**/.*",
