@@ -2,10 +2,11 @@
 'use strict';
 
 $(function() {
-  // Initialise Globals
+  /** INITIALISE GLOBALS **/
+  
   var map = new google.maps.Map($('#mapCanvas').get(0), {
-    center: new google.maps.LatLng(-34.397, 150.644),
-      zoom: 8
+    center: new google.maps.LatLng(53.958333, -1.080278),
+    zoom: 11
   });
   var droppedFile = null;
 
@@ -165,14 +166,14 @@ $(function() {
     }
   });
 
-  $.ajax({
-      type: 'GET',
-      url: './my_route.gpx',
-      dataType: 'text',
-      success: function(txt) {
-          plotFile(txt);
-      }
-  });
+  // $.ajax({
+  //     type: 'GET',
+  //     url: './my_route.gpx',
+  //     dataType: 'text',
+  //     success: function(txt) {
+  //         plotFile(txt);
+  //     }
+  // });
 
   // Initialise timeline
   var stepInterval;
