@@ -143,7 +143,6 @@ $(function() {
     onSuccess: function() {
       console.log('MQTT Client Connected');
       mqttClient.subscribe('/test/debug');
-      mqttClient.subscribe('/trace/jason');
     }
   });
 
@@ -244,6 +243,18 @@ $(function() {
         lastMinute = {time: time, point: point};
       }
     };
+
+    // Subscribe to live feed
+    self.subscribeFeed = function(traceID) {
+      handlerDictionary[traceID] = function(obj) {
+        self.addDataPoint(
+          moment.unix(obj.tst),
+          new google.maps.LatLng(obj.lat, obj.lon)
+        );
+        chart.update();
+      };
+      mqttClient.subscribe('/trace/' + traceID);
+    };
   };
 
   // Function for plotting new traces from GPX data
@@ -269,12 +280,19 @@ $(function() {
       console.log('Done.');
     };
 
-  $.ajax({
-      type: 'GET',
-      url: './my_route.gpx',
-      dataType: 'text',
-      success: function(txt) {
-          plotFile(txt);
-      }
-  });
+  // setTimeout(function() {
+  //   console.log("Creating test lvie trace");
+  //   var trace = new Trace();
+  //   trace.setTitle("Hello world!");
+  //   trace.subscribeFeed("jason");
+  // }, 5000);
+
+  // $.ajax({
+  //     type: 'GET',
+  //     url: './my_route.gpx',
+  //     dataType: 'text',
+  //     success: function(txt) {
+  //         plotFile(txt);
+  //     }
+  // });
 });
