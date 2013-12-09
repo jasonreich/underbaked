@@ -83,17 +83,81 @@
             <h4 class="modal-title" id="addTrace">Add New Trace</h4>
           </div>
           <div class="modal-body">
-            <div id="fileDropZone" class="well">
-              <p id="fileDropError" class="text-danger" style="display: none;">File not accepted. Must have GPX extension.</p>
-              Drop files here
-            </div>
-            <div class="form-group">
-              <label for="mqttSuffix">MQTT Topic Suffix (optional)</label>
-              <div class="input-group">
-                <span class="input-group-addon">/trace/</span>
-                <input type="email" class="form-control" id="mqttSuffix" placeholder="Enter suffix">
+            <p>Choose an appropriate trace type.</p>
+            <div class="panel-group" id="addAccordian">
+              <div class="panel panel-default">
+                <div class="panel-heading">
+                  <h4 class="panel-title">
+                    <a data-toggle="collapse" data-parent="#addAccordian" href="#collapseUpload">
+                      Upload GPX telemetry
+                    </a>
+                  </h4>
+                </div>
+                <div id="collapseUpload" class="panel-collapse collapse">
+                  <div class="panel-body">
+                    <p>Upload a GPX file.</p>
+                    <div class="form-group">
+                      <label for="fileDropZone">GPX File Drop:</label>
+                      <div id="fileDropZone" class="well">
+                        <p id="fileDropError" class="text-danger" style="display: none;">File not accepted. Must have GPX extension.</p>
+                        Drop files here
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="panel panel-default">
+                <div class="panel-heading">
+                  <h4 class="panel-title">
+                    <a data-toggle="collapse" data-parent="#addAccordian" href="#collapseCollect">
+                      Collect live telemetry
+                    </a>
+                  </h4>
+                </div>
+                <div id="collapseCollect" class="panel-collapse collapse">
+                  <div class="panel-body">
+                    <p>Select an unclaimed live feed and give it a title.</p>
+                    <div class="form-group">
+                      <label for="collectSuffix">MQTT Topic Suffix:</label>
+                      <div class="input-group">
+                        <span class="input-group-addon">/live/</span>
+                        <input class="form-control" id="collectSuffix" placeholder="Enter suffix">
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label for="collectTitle">Trace Title:</label>
+                      <input class="form-control" id="collectTitle" placeholder="Enter a title for this trace">
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="panel panel-default">
+                <div class="panel-heading">
+                  <h4 class="panel-title">
+                    <a data-toggle="collapse" data-parent="#addAccordian" href="#collapseReplay">
+                      Replay archived telemetry
+                    </a>
+                  </h4>
+                </div>
+                <div id="collapseReplay" class="panel-collapse collapse">
+                  <div class="panel-body">
+                    <p>Select an archive and choose a MQTT topic for your replay.</p>
+                    <div class="form-group">
+                      <label for="replaceArchive">Archive ID:</label>
+                      <input class="form-control" id="replaceArchive" placeholder="Enter archive ID">
+                    </div>
+                    <div class="form-group">
+                      <label for="replaySuffix">MQTT Topic Suffix:</label>
+                      <div class="input-group">
+                        <span class="input-group-addon">/replay/</span>
+                        <input class="form-control" id="replaySuffix" placeholder="Enter suffix">
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
+            
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
