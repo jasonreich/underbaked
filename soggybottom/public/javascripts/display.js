@@ -51,6 +51,36 @@ $(function() {
             points.push(item);
           });
           
+          console.log('POSTing bulk points data.');
+          $.ajax({
+            url: '/db/points/_bulk_docs',
+            type: 'POST',
+            data: JSON.stringify({docs: points}),
+            contentType: 'application/json',
+            dataType: 'json',
+            complete: function(jqXHR, textStatus) {
+              console.log('Points: ');
+              console.log(textStatus);
+            }
+          });
+
+          console.log('POSTing trace record data.');
+          $.ajax({
+            url: '/db/traces',
+            type: 'POST',
+            data: JSON.stringify({
+              startTst: parsed.startDate,
+              endTst: parsed.endDate,
+              title: parsed.title,
+              topic: traceID
+            }),
+            contentType: 'application/json',
+            dataType: 'json',
+            complete: function(jqXHR, textStatus) {
+              console.log('Trace: ');
+              console.log(textStatus);
+            }
+          });
         }
       };
       console.log('Start reading file.');
