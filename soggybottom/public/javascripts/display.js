@@ -277,7 +277,7 @@ $(function() {
       trace.setTitle($xml.children('trk').children('name').text());
       chart.update();
 
-      if (mqttSuffix !== "") {
+      if (mqttSuffix !== '') {
         trace.subscribeFeed(mqttSuffix);
       }
 
