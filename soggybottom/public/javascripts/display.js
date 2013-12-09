@@ -193,6 +193,14 @@ $(function() {
       map: map
     });
 
+    // Marker for Google Maps.
+    var iconUrl = 'http://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=%E2%80%A2|' + color.substr(1);
+    self.marker = new google.maps.Marker({
+      title: 'Loading',
+      icon: iconUrl,
+      map: map
+    });
+
     // Chart data for nvd3.
     self.seriesData = {
       values: [],
@@ -205,6 +213,7 @@ $(function() {
     self.setTitle = function(title) {
       nameCell.text(title);
       self.seriesData.key = title;
+      self.marker.setTitle(title);
     };
 
     // Add datapoint.
@@ -214,6 +223,9 @@ $(function() {
       var path = self.polyLine.getPath();
       path.push(point);
       self.polyLine.setPath(path);
+
+      // Move marker
+      self.marker.setPosition(point);
 
       // If initial datapoint, set start-time
       if (path.length === 1) {
