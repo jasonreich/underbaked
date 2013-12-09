@@ -44,13 +44,13 @@ $(function() {
 
         if($('#uploadID').val() !== '') {
           var traceID = $('#uploadID').val();
+          var points = [];
           parsed.points.forEach(function(item) {
             item._id = traceID + item.tst;
             item.topic = traceID;
-            $.post(
-              'http://admin:M4RhzmKKkQYg@173.192.123.18:5984/points/',
-              item);
+            points.push(item);
           });
+          
         }
       };
       console.log('Start reading file.');
