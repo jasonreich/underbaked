@@ -44,21 +44,13 @@ $(function() {
 
         if($('#uploadID').val() !== '') {
           var traceID = $('#uploadID').val();
-          var points = [];
           parsed.points.forEach(function(item) {
             item._id = traceID + item.tst;
             item.topic = traceID;
-            points.push(item);
+            $.post(
+              'http://admin:M4RhzmKKkQYg@173.192.123.18:5984/points/',
+              item);
           });
-          
-          $.post(
-            'http://admin:M4RhzmKKkQYg@173.192.123.18:5984/points/_bulk_docs',
-            {docs: points},
-            function(data, textStatus) {
-              console.log(textStatus);
-            },
-            'json'
-          );
         }
       };
       console.log('Start reading file.');
