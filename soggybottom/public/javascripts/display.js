@@ -32,13 +32,18 @@ $(function() {
   // Save button on add trace.
   $('#addTraceSave').click(function() {
     // If completed upload form.
-    if ($('#collapseUpload').hasClass('in')
-     && $('#uploadFile').get(0).files
-     && $('#uploadFile').get(0).files.length > 0 )  {
+    if ($('#collapseUpload').hasClass('in') &&
+        $('#uploadFile').get(0).files &&
+        $('#uploadFile').get(0).files.length > 0 )  {
       var reader = new FileReader();
       reader.onload = function(event) {
         console.log('Start plotting file.');
-        plotFile(event.target.result);
+        var parsed = parseGPX(event.target.result);
+        var trace = plotArchive(parsed);
+        trace.finishFeed();
+        if($('#uploadID').val() !== '') {
+
+        }
       };
       console.log('Start reading file.');
       reader.readAsText($('#uploadFile').get(0).files[0]);
@@ -244,50 +249,55 @@ $(function() {
       };
       mqttClient.subscribe('/trace/' + traceID);
     };
+
+    // Finish a live feed
+    self.finishFeed = function() {
+      var delta = moment(lastMinute.time).diff(self.startTime, 'hours', true);
+      nameCell.removeClass('text-success');
+      totalCell.text(delta + ' hours').removeClass('text-success');
+    };
   };
 
-  // Function for plotting new traces from GPX data
-  var plotFile = function (xml, mqttSuffix) {
-      var trace = new Trace();
+  // Parse a GPX file
+  var parseGPX = function(txt) {
+    var $xml = $(txt);
+    var $trkpts = $xml.children('trk')
+                .children('trkseg').children('trkpt');
 
-      var $xml = $(xml);
-      var $trkpts = $xml.children('trk')
-                  .children('trkseg').children('trkpt');
+    var startDate, endDate;
+    var points = [];
 
-      $trkpts.each(function() {
-          var lat = $(this).attr('lat');
-          var lng = $(this).attr('lon');
-          var time = new Date($(this).find('time').text());
-          
-          var p = new google.maps.LatLng(lat, lng);
-          trace.addDataPoint(time, p);
-      });
+    $trkpts.each(function() {
+        var lat   = $(this).attr('lat');
+        var lng   = $(this).attr('lon');
+        var time  = moment($(this).find('time').text()).format('X');
+        var point = new google.maps.LatLng(lat, lng);
 
-      trace.setTitle($xml.children('trk').children('name').text());
-      chart.update();
+        if (!startDate) startDate = time;
+        endDate = time;
+        points.push({time: time, point: point});
+    });
 
-      if (mqttSuffix !== '') {
-        trace.subscribeFeed(mqttSuffix);
-      }
-
-      console.log('Done.');
+    return {
+      title: $xml.children('trk').children('name').text(),
+      startDate: startDate,
+      endDate: endDate,
+      points: points
     };
+  };
 
-  /*
-  setTimeout(function() {
-    console.log("Creating test lvie trace");
+  // Function for plotting new traces from archive telemetry data
+  var plotArchive = function(data) {
     var trace = new Trace();
-    trace.setTitle("Hello world!");
-    trace.subscribeFeed("jason");
-  }, 5000);
 
-  $.ajax({
-      type: 'GET',
-      url: './my_route.gpx',
-      dataType: 'text',
-      success: function(txt) {
-          plotFile(txt);
-      }
-  });
-  */
+    data.points.forEach(function(item) {
+      trace.addDataPoint(moment.unix(item.time), item.point);
+    });
+
+    trace.setTitle(data.title);
+    chart.update();
+    console.log('Done.');
+
+    return trace;
+  };
 });
