@@ -41,8 +41,24 @@ $(function() {
         var parsed = parseGPX(event.target.result);
         var trace = plotArchive(parsed);
         trace.finishFeed();
-        if($('#uploadID').val() !== '') {
 
+        if($('#uploadID').val() !== '') {
+          var traceID = $('#uploadID').val();
+          var points = [];
+          parsed.points.forEach(function(item) {
+            item._id = traceID + item.tst;
+            item.topic = traceID;
+            points.push(item);
+          });
+          
+          $.post(
+            'http://admin:M4RhzmKKkQYg@173.192.123.18:5984/points/_bulk_docs',
+            {docs: points},
+            function(data, textStatus) {
+              console.log(textStatus);
+            },
+            'json'
+          );
         }
       };
       console.log('Start reading file.');
@@ -252,7 +268,7 @@ $(function() {
 
     // Finish a live feed
     self.finishFeed = function() {
-      var delta = moment(lastMinute.time).diff(self.startTime, 'hours', true);
+      var delta = moment(lastMinute.time).diff(self.startTime, 'hours', true).toFixed(2);
       nameCell.removeClass('text-success');
       totalCell.text(delta + ' hours').removeClass('text-success');
     };
@@ -268,14 +284,13 @@ $(function() {
     var points = [];
 
     $trkpts.each(function() {
-        var lat   = $(this).attr('lat');
-        var lng   = $(this).attr('lon');
-        var time  = moment($(this).find('time').text()).format('X');
-        var point = new google.maps.LatLng(lat, lng);
+        var lat = $(this).attr('lat');
+        var lon = $(this).attr('lon');
+        var tst = moment($(this).find('time').text()).format('X');
 
-        if (!startDate) startDate = time;
-        endDate = time;
-        points.push({time: time, point: point});
+        if (!startDate) startDate = tst;
+        endDate = tst;
+        points.push({tst: tst, lat: lat, lon: lon});
     });
 
     return {
@@ -291,7 +306,8 @@ $(function() {
     var trace = new Trace();
 
     data.points.forEach(function(item) {
-      trace.addDataPoint(moment.unix(item.time), item.point);
+      var point = new google.maps.LatLng(item.lat, item.lon);
+      trace.addDataPoint(moment.unix(item.tst), point);
     });
 
     trace.setTitle(data.title);
