@@ -98,11 +98,8 @@
                   <div class="panel-body">
                     <p>Upload a GPX file.</p>
                     <div class="form-group">
-                      <label for="fileDropZone">GPX File Drop:</label>
-                      <div id="fileDropZone" class="well">
-                        <p id="fileDropError" class="text-danger" style="display: none;">File not accepted. Must have GPX extension.</p>
-                        Drop files here
-                      </div>
+                      <label for="uploadFile">GPX File:</label>
+                      <input type="file" id="uploadFile">
                     </div>
                   </div>
                 </div>
@@ -162,7 +159,7 @@
           </form>
           <div class="modal-footer">
             <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-            <button id="fileDropSave" type="button" class="btn btn-primary">Save changes</button>
+            <button id="addTraceSave" type="button" class="btn btn-primary">Save changes</button>
           </div>
         </div>
       </div>

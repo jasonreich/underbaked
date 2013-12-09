@@ -26,53 +26,29 @@ $(function() {
     };
   })();
 
-  // GPX File Drop
-  // -------------
+  // Add trace
+  // ---------
 
-  // Variable that remembers dropped file
-  var droppedFile = null;
-
-  // Configure file drop DOM events
-  $('#fileDropZone').on('drop', function(event) {
-    event.stopPropagation();
-    event.preventDefault();
-    $(this).removeClass('fileDropHover');
-    
-    var files = event.originalEvent.dataTransfer.files;
-    
-    if (files.length > 0 && files[0].name.split('.').pop().toLowerCase() == 'gpx') {
-      $(this)
-        .addClass('fileDropAccepted')
-        .text('Accepted file: ' + files[0].name);
-      droppedFile = files[0];
-    } else {
-      $('#fileDropError').show().fadeOut(5000);
-      droppedFile = null;
-    }
-  }).on('dragover', function(event){
-    event.stopPropagation();
-    event.preventDefault();
-  }).on('dragenter dragleave', function(event){
-    event.stopPropagation();
-    event.preventDefault();
-    $(this).toggleClass('fileDropHover');
-  });
-
-  // Save button on file drop.
-  $('#fileDropSave').click(function() {
-    if (droppedFile) {
+  // Save button on add trace.
+  $('#addTraceSave').click(function() {
+    // If completed upload form.
+    if ($('#collapseUpload').hasClass('in')
+     && $('#uploadFile').get(0).files
+     && $('#uploadFile').get(0).files.length > 0 )  {
       var reader = new FileReader();
       reader.onload = function(event) {
         console.log('Start plotting file.');
-        plotFile(event.target.result, $('#mqttSuffix').val());
+        plotFile(event.target.result);
       };
       console.log('Start reading file.');
-      reader.readAsText(droppedFile);
-      $('#fileDropZone')
-        .removeClass('fileDropAccepted')
-        .text('Drop files here');
-      
+      reader.readAsText($('#uploadFile').get(0).files[0]);
       $('#addTrace').modal('hide');
+    // If completed collect form.
+    } else if ($('#collapseCollect').hasClass('in')) {
+
+    // If completed upload form.
+    } else if ($('#collapseReplay').hasClass('in')) {
+
     }
   });
 
