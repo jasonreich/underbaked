@@ -42,7 +42,32 @@ if ('development' == app.get('env')) {
 }
 
 app.get('/', routes.index);
-app.get('/users', user.list);
+app.get('/mqtc/:liveID', function(req, res) {
+  res.attachment('conf.mqtc');
+  res.json({
+    "_type": "configuration",
+    "deviceid": "iphone",
+    "clientid": req.params.liveID,
+    "subscription": "/test/debug",
+    "topic": "/live/" + req.params.liveID,
+    "host": "5.153.17.246",
+    "user": "tracker",
+    "pass": "tracker",
+    "subscriptionqos": "1",
+    "qos": "1",
+    "port": "13531",
+    "keepalive": "60",
+    "retain": "false",
+    "tls": "0",
+    "auth": "1",
+    "clean": "0",
+    "willretain": "0",
+    "mindist": "1",
+    "mintime": "5",
+    "monitoring": "2",
+    "ab": "0"
+  });
+})
 
 http.createServer(app).listen(app.get('port'), function(){
   console.log('Express server listening on port ' + app.get('port'));
