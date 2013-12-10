@@ -45,10 +45,15 @@ $(function() {
         if($('#uploadID').val() !== '') {
           var traceID = $('#uploadID').val();
           var points = [];
+          var lastPush;
           parsed.points.forEach(function(item) {
-            item._id = traceID + item.tst;
-            item.topic = traceID;
-            points.push(item);
+            // Rate limit upload to once every 30 seconds.
+            if (!lastPush || item.tst - lastPush >= 30) {
+              item._id = traceID + item.tst;
+              item.topic = traceID;
+              points.push(item);
+              lastPush = item.tst;
+            }
           });
           
           console.log('POSTing bulk points data.');
