@@ -63,7 +63,7 @@ app.get('/mqtc/:liveID', function(req, res) {
     "clean": "0",
     "willretain": "0",
     "mindist": "1",
-    "mintime": "5",
+    "mintime": "60",
     "monitoring": "2",
     "ab": "0"
   });
