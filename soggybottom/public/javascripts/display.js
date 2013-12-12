@@ -29,74 +29,105 @@ $(function() {
   // Add trace
   // ---------
 
-  // Save button on add trace.
-  $('#addTraceSave').click(function() {
-    // If completed upload form.
-    if ($('#collapseUpload').hasClass('in') &&
-        $('#uploadFile').get(0).files &&
-        $('#uploadFile').get(0).files.length > 0 )  {
+  // Add Trace form validity
+  var isAddTraceFormValid = function() {
+    // Page 2: Can only view in full if loading from disk.
+    if ($('#telemetryViewRadioPartial').prop('checked')) {
+      if ($('#telemetrySourceRadioLocal').prop('checked')) {
+        return 'Cannot replay trace without first uploading to server.';
+      }
+    } 
+  
+    // Page 1: Are boxes filled?
+    if ($('#telemetrySourceRadioLocal').prop('checked')) {
+      if ($('#uploadFile').get(0).files.length !== 1) {
+        return 'No source file selected.';
+      }
+    } else if ($('#telemetrySourceRadioRemote').prop('checked')) {
+      if (! $('#remoteID').val()) {
+        return 'No CouchDB source ID entered.';
+      }
+    } else if ($('#telemetrySourceRadioMQTT').prop('checked')) {
+      if (! $('#mqttSource').val()) {
+        return 'No MQTT source topic entered.';
+      }
+    } 
+    
+    // Page 2: Are boxes filled?
+    if ($('#telemetryViewRadioPartial').prop('checked')) {
+      if (! $('#startTimePartial').val()) {
+        return 'No start time entered.';
+      }
+    }
+    
+    // Page 3: Are boxes filled?
+    if ($('#telemetryTargetCouchDB').prop('checked')) {
+      if (! $('#storeID').val()) {
+        return 'No couch DB storage ID entered.';
+      }
+    } else if ($('#telemetryTargetMQTT').prop('checked')) {
+      if (! $('#mqttTarget').val()) {
+        return 'No MQTT topic topic entered.';
+      }
+    } 
+  };
+  
+  $('#addAccordian').change(function() {
+    var isValid = isAddTraceFormValid();
+    if (isValid) {
+      $('#validationError').text(isValid);
+    } else {
+      $('#validationError').text("");
+    }
+  });
+  
+  var doSource = function() {
+    if ($('#telemetrySourceRadioLocal').prop('checked')) {
+      // Load the file from disk
       var reader = new FileReader();
       reader.onload = function(event) {
-        console.log('Start plotting file.');
-        var parsed = parseGPX(event.target.result);
-        var trace = plotArchive(parsed);
-        trace.finishFeed();
-
-        if($('#uploadID').val() !== '') {
-          var traceID = $('#uploadID').val();
-          var points = [];
-          var lastPush;
-          parsed.points.forEach(function(item) {
-            // Rate limit upload to once every 30 seconds.
-            if (!lastPush || item.tst - lastPush >= 30) {
-              item._id = traceID + item.tst;
-              item.topic = traceID;
-              points.push(item);
-              lastPush = item.tst;
-            }
-          });
-          
-          console.log('POSTing bulk points data.');
-          $.ajax({
-            url: '/db/points/_bulk_docs',
-            type: 'POST',
-            data: JSON.stringify({docs: points}),
-            contentType: 'application/json',
-            dataType: 'json',
-            complete: function(jqXHR, textStatus) {
-              console.log('Points: ');
-              console.log(textStatus);
-            }
-          });
-
-          console.log('POSTing trace record data.');
-          $.ajax({
-            url: '/db/traces',
-            type: 'POST',
-            data: JSON.stringify({
-              startTst: parsed.startDate,
-              endTst: parsed.endDate,
-              title: parsed.title,
-              topic: traceID
-            }),
-            contentType: 'application/json',
-            dataType: 'json',
-            complete: function(jqXHR, textStatus) {
-              console.log('Trace: ');
-              console.log(textStatus);
-            }
-          });
-        }
-      };
-      console.log('Start reading file.');
+        doTarget(parseGPX(event.target.result), null);
+      }
       reader.readAsText($('#uploadFile').get(0).files[0]);
-      $('#addTrace').modal('hide');
-    // If completed collect form.
-    } else if ($('#collapseCollect').hasClass('in')) {
-
-    // If completed upload form.
-    } else if ($('#collapseReplay').hasClass('in')) {
-
+    } else if ($('#telemetrySourceRadioRemote').prop('checked')) {
+      alert('Not yet completed');
+    } else if ($('#telemetrySourceRadioMQTT').prop('checked')) {
+      var mqttTopic = $('#mqttSource').val();
+      var history = {
+        title: mqttTopic,
+        startDate: moment().format('X'),
+        points: []
+      };
+      doTarget(history, mqttTopic);
+    }
+  };
+  
+  var doTarget = function(history, mqttTopic) {
+    if ($('#telemetryTargetCouchDB').prop('checked')) {
+      alert('Not yet completed');
+    }
+    
+    if ($('#telemetryTargetMQTT').prop('checked')) {
+      mqttTopic = '/trace/' + $('#mqttTarget').val();
+    } 
+    
+    if ($('#telemetryTargetMap').prop('checked')) {
+      var trace = plotArchive(history);
+      if (mqttTopic) {
+        trace.subscribeFeed(mqttTopic);
+      } else {
+        trace.finishFeed();
+      }
+    } 
+    
+    // Finally, hide dialog.
+    $('#addTrace').modal('hide');
+  };
+  
+  // Save button on add trace.
+  $('#addTraceSave').click(function() {
+    if (!isAddTraceFormValid()) {
+      doSource();
     }
   });
 

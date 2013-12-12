@@ -84,51 +84,53 @@
           </div>
           <form role="form">
           <div class="modal-body">
-            <p>Choose an appropriate trace type.</p>
             <div class="panel-group" id="addAccordian">
               <div class="panel panel-default">
                 <div class="panel-heading">
                   <h4 class="panel-title">
-                    <a data-toggle="collapse" data-parent="#addAccordian" href="#collapseUpload">
-                      Upload GPX telemetry
+                    <a data-toggle="collapse" data-parent="#addAccordian" href="#telemetrySource">
+                      1. Source of telemetry trace
                     </a>
                   </h4>
                 </div>
-                <div id="collapseUpload" class="panel-collapse collapse">
+                <div id="telemetrySource" class="panel-collapse collapse">
                   <div class="panel-body">
-                    <p>Upload a GPX file.</p>
-                    <div class="form-group">
-                      <label for="uploadFile">GPX File:</label>
-                      <input type="file" id="uploadFile">
-                    </div>
-                    <div class="form-group">
-                      <label for="uploadID">Trace ID: (optional)</label>
-                      <input class="form-control" id="uploadID" placeholder="Enter an ID for this trace">
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div class="panel panel-default">
-                <div class="panel-heading">
-                  <h4 class="panel-title">
-                    <a data-toggle="collapse" data-parent="#addAccordian" href="#collapseCollect">
-                      Collect live telemetry
-                    </a>
-                  </h4>
-                </div>
-                <div id="collapseCollect" class="panel-collapse collapse">
-                  <div class="panel-body">
-                    <p>Select an unclaimed live feed and give it a title.</p>
-                    <div class="form-group">
-                      <label for="collectSuffix">MQTT Topic Suffix:</label>
-                      <div class="input-group">
-                        <span class="input-group-addon">/live/</span>
-                        <input class="form-control" id="collectSuffix" placeholder="Enter suffix">
+                    <p>Choose one telemetry source.</p>
+                    <div class="row">
+                      <div class="col-md-1">
+                         <input type="radio" name="telemetrySourceRadio" id="telemetrySourceRadioLocal" value="local" checked>
+                      </div>
+                      <div class="col-md-11">
+                        <div class="form-group">
+                          <label for="uploadFile">Local GPX File:</label>
+                          <input type="file" id="uploadFile">
+                        </div>
                       </div>
                     </div>
-                    <div class="form-group">
-                      <label for="collectTitle">Trace Title:</label>
-                      <input class="form-control" id="collectTitle" placeholder="Enter a title for this trace">
+                    <div class="row">
+                      <div class="col-md-1">
+                         <input type="radio" name="telemetrySourceRadio" id="telemetrySourceRadioRemote" value="remote">
+                      </div>
+                      <div class="col-md-11">
+                        <div class="form-group">
+                          <label for="remoteID">Remote CouchDB Trace:</label>
+                          <input type="text" class="form-control" id="remoteID" placeholder="Enter an ID for this CouchDB trace.">
+                        </div>
+                      </div>
+                    </div>
+                    <div class="row">
+                      <div class="col-md-1">
+                         <input type="radio" name="telemetrySourceRadio" id="telemetrySourceRadioMQTT" value="mqtt">
+                      </div>
+                      <div class="col-md-11">
+                        <div class="form-group">
+                          <label for="mqttSource">Remote MQTT Trace:</label>
+                          <div class="input-group">
+                            <span class="input-group-addon">/trace/</span>
+                            <input class="form-control" id="mqttSource" placeholder="Enter an ID for this trace.">
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -136,23 +138,82 @@
               <div class="panel panel-default">
                 <div class="panel-heading">
                   <h4 class="panel-title">
-                    <a data-toggle="collapse" data-parent="#addAccordian" href="#collapseReplay">
-                      Replay archived telemetry
+                    <a data-toggle="collapse" data-parent="#addAccordian" href="#telemetryView">
+                      2. View on telemetry trace
                     </a>
                   </h4>
                 </div>
-                <div id="collapseReplay" class="panel-collapse collapse">
+                <div id="telemetryView" class="panel-collapse collapse">
                   <div class="panel-body">
-                    <p>Select an archive and choose a MQTT topic for your replay.</p>
-                    <div class="form-group">
-                      <label for="replaceArchive">Archive ID:</label>
-                      <input class="form-control" id="replaceArchive" placeholder="Enter archive ID">
+                    <p>Choose how you wish to view telemetry.</p>
+                    <div class="row">
+                      <div class="col-md-1">
+                         <input type="radio" name="telemetryViewRadio" id="telemetryViewRadioFull" value="full" checked>
+                      </div>
+                      <div class="col-md-11">
+                        <div class="form-group">
+                          <label for="startTimeFull">Display full trace.</label>
+                        </div>
+                      </div>
                     </div>
-                    <div class="form-group">
-                      <label for="replaySuffix">MQTT Topic Suffix:</label>
-                      <div class="input-group">
-                        <span class="input-group-addon">/replay/</span>
-                        <input class="form-control" id="replaySuffix" placeholder="Enter suffix">
+                    <div class="row">
+                      <div class="col-md-1">
+                         <input type="radio" name="telemetryViewRadio" id="telemetryViewRadioPartial" value="partial">
+                      </div>
+                      <div class="col-md-11">
+                        <div class="form-group">
+                          <label for="startTimeFull">Display partial trace and replay from start time:</label>
+                          <input type="text" class="form-control" id="startTimePartial" placeholder="00:00">
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="panel panel-default">
+                <div class="panel-heading">
+                  <h4 class="panel-title">
+                    <a data-toggle="collapse" data-parent="#addAccordian" href="#telemetryTarget">
+                      3. Target of telemetry trace
+                    </a>
+                  </h4>
+                </div>
+                <div id="telemetryTarget" class="panel-collapse collapse">
+                  <div class="panel-body">
+                    <p>Choose where the telemetry will go.</p>
+                    <div class="row">
+                      <div class="col-md-1">
+                         <input type="checkbox" id="telemetryTargetCouchDB">
+                      </div>
+                      <div class="col-md-11">
+                        <div class="form-group">
+                          <label for="storeID">Store to CouchDB:</label>
+                          <input type="text" class="form-control" id="storeID" placeholder="Enter an ID for this CouchDB trace.">
+                        </div>
+                      </div>
+                    </div>
+                    <div class="row">
+                      <div class="col-md-1">
+                         <input type="checkbox" id="telemetryTargetMQTT">
+                      </div>
+                      <div class="col-md-11">
+                        <div class="form-group">
+                          <label for="mqttTarget">Output on MQTT:</label>
+                          <div class="input-group">
+                            <span class="input-group-addon">/replay/ & /trace/</span>
+                            <input class="form-control" id="mqttTarget" placeholder="Enter an ID for this trace.">
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="row">
+                      <div class="col-md-1">
+                         <input type="checkbox" id="telemetryTargetMap" checked>
+                      </div>
+                      <div class="col-md-11">
+                        <div class="form-group">
+                          <label for="telemetryTargetMap">Display on map.</label>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -162,6 +223,7 @@
           </div>
           </form>
           <div class="modal-footer">
+            <span class="pull-left text-danger" id="validationError"></span>
             <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
             <button id="addTraceSave" type="button" class="btn btn-primary">Save changes</button>
           </div>
