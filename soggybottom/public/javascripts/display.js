@@ -26,6 +26,55 @@ $(function() {
     };
   })();
 
+  // MQTT Client
+  // -----------
+
+  // Generate a five character client ID suffix.
+  var clientID = (function() {
+    var id = 'viewer-';
+    for(var i = 0; i < 10; i++) {
+      id += Math.floor(Math.random() * 16).toString(16);
+    }
+    return id;
+  })();
+
+  // Dictionary for message handlers.
+  var handlerDictionary = {};
+
+  // Initialise a conneciton to the MessageSight broker.
+  var mqttClient = new Messaging.Client('5.153.17.246', 13531, clientID);
+  console.log('Connecting with client ID: ' + clientID);
+  mqttClient.connect({
+    onSuccess: function() {
+      console.log('MQTT Client Connected');
+      mqttClient.subscribe('/test/debug');
+    }
+  });
+
+  // On message arrival, lookup trace in dictionary for handler.
+  mqttClient.onMessageArrived = function(msg) {
+    var dest = msg.destinationName;
+    if (dest.indexOf('/trace/') === 0) {
+      var traceID = dest.substr('/trace/'.length);
+      if (traceID in handlerDictionary) {
+        handlerDictionary[traceID](JSON.parse(msg.payloadString));
+      } else {
+        console.log('Unknown traceID: ' + traceID);
+      }
+    } else {
+      console.log('Unknown topic:');
+      console.log(msg);
+    }
+  };
+  
+  // Send command (requires connection)
+  var sendCommand = function (obj) {
+    var message = new Messaging.Message(JSON.stringify(obj));
+    message.destinationName = "/command/";
+    message.qos = 1;
+    mqttClient.send(message); 
+  };
+  
   // Add trace
   // ---------
 
@@ -90,7 +139,49 @@ $(function() {
       }
       reader.readAsText($('#uploadFile').get(0).files[0]);
     } else if ($('#telemetrySourceRadioRemote').prop('checked')) {
-      alert('Not yet completed');
+      var topicSegment = $('#remoteID').val();
+      if ($('#telemetryViewRadioFull').prop('checked')) {
+        $.ajax({
+          url: '/db/traces/_design/TraceDesign/_view/getTraceByTopic?key=' 
+               + encodeURIComponent('"' + topicSegment + '"'),
+          type: 'GET',
+          contentType: 'application/json',
+          dataType: 'json',
+          success: function(traceData) {
+            if (traceData.total_rows == 1) {
+              $.ajax({
+                url: '/db/points/_design/PointsDesign/_view/getPointsByTopic?key=' 
+                     + encodeURIComponent('"' + topicSegment + '"'),
+                type: 'GET',
+                contentType: 'application/json',
+                dataType: 'json',
+                success: function(pointsData) {
+                  var history = {
+                    title: traceData.rows[0].value.title,
+                    startTst: traceData.rows[0].value.startTst,
+                    endTst: traceData.rows[0].value.endTst,
+                    points: []
+                  };
+                  
+                  pointsData.rows.forEach( function(item) {
+                    history.points.push(item.value);
+                  });
+                  
+                  doTarget(history, null);
+                }
+              });
+            };
+          }
+        });
+      } else if ($('#telemetryViewRadioPartial').prop('checked')) {
+        var history = {
+          title: '/replay/' + topicSegment,
+          points: []
+        };
+        sendCommand({command: 'load', topic: topicSegment});
+        sendCommand({command: 'start', topic: topicSegment});
+        doTarget(history, topicSegment);
+      }
     } else if ($('#telemetrySourceRadioMQTT').prop('checked')) {
       var mqttTopic = $('#mqttSource').val();
       var history = {
@@ -104,7 +195,43 @@ $(function() {
   
   var doTarget = function(history, mqttTopic) {
     if ($('#telemetryTargetCouchDB').prop('checked')) {
-      alert('Not yet completed');
+      var traceID = $('#storeID').val();
+      var points = [];
+      history.points.forEach(function(item) {
+        item._id = traceID + item.tst;
+        item.topic = traceID;
+        points.push(item);
+      });
+      
+      console.log('POSTing bulk points data.');
+      $.ajax({
+        url: '/db/points/_bulk_docs',
+        type: 'POST',
+        data: JSON.stringify({docs: points}),
+        contentType: 'application/json',
+        dataType: 'json',
+        complete: function(jqXHR, textStatus) {
+          console.log('Points: ');
+          console.log(textStatus);
+        }
+      });
+      
+      $.ajax({
+        url: '/db/traces',
+        type: 'POST',
+        data: JSON.stringify({
+          startTst:  history.startDate,
+          endTst:  history.endDate,
+          title:  history.title,
+          topic: traceID
+        }),
+        contentType: 'application/json',
+        dataType: 'json',
+        complete: function(jqXHR, textStatus) {
+          console.log('Trace: ');
+          console.log(textStatus);
+        }
+      });
     }
     
     if ($('#telemetryTargetMQTT').prop('checked')) {
@@ -176,47 +303,6 @@ $(function() {
   $('#controls').draggable({
     handle: '.panel-heading'
   });
-
-  // MQTT Client
-  // -----------
-
-  // Generate a five character client ID suffix.
-  var clientID = (function() {
-    var id = 'viewer-';
-    for(var i = 0; i < 10; i++) {
-      id += Math.floor(Math.random() * 16).toString(16);
-    }
-    return id;
-  })();
-
-  // Dictionary for message handlers.
-  var handlerDictionary = {};
-
-  // Initialise a conneciton to the MessageSight broker.
-  var mqttClient = new Messaging.Client('5.153.17.246', 13531, clientID);
-  console.log('Connecting with client ID: ' + clientID);
-  mqttClient.connect({
-    onSuccess: function() {
-      console.log('MQTT Client Connected');
-      mqttClient.subscribe('/test/debug');
-    }
-  });
-
-  // On message arrival, lookup trace in dictionary for handler.
-  mqttClient.onMessageArrived = function(msg) {
-    var dest = msg.destinationName;
-    if (dest.indexOf('/trace/') === 0) {
-      var traceID = dest.substr('/trace/'.length);
-      if (traceID in handlerDictionary) {
-        handlerDictionary[traceID](JSON.parse(msg.payloadString));
-      } else {
-        console.log('Unknown traceID: ' + traceID);
-      }
-    } else {
-      console.log('Unknown topic:');
-      console.log(msg);
-    }
-  };
 
   // Plotting traces
   // ===============
