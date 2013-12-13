@@ -152,7 +152,7 @@
                       </div>
                       <div class="col-md-11">
                         <div class="form-group">
-                          <label for="startTimeFull">Display full trace.</label>
+                          <label for="startTimeFull">Display completed trace.</label>
                         </div>
                       </div>
                     </div>
@@ -162,8 +162,8 @@
                       </div>
                       <div class="col-md-11">
                         <div class="form-group">
-                          <label for="startTimeFull">Display partial trace and replay from start time:</label>
-                          <input type="text" class="form-control" id="startTimePartial" placeholder="00:00">
+                          <label for="startTimeFull">Display running trace.</label>
+                          <!-- <input type="text" class="form-control" id="startTimePartial" value="00:00"> -->
                         </div>
                       </div>
                     </div>
@@ -194,14 +194,14 @@
                     </div>
                     <div class="row">
                       <div class="col-md-1">
-                         <input type="checkbox" id="telemetryTargetMQTT">
+                         <input type="checkbox" id="telemetryTargetMQTT" disabled>
                       </div>
                       <div class="col-md-11">
                         <div class="form-group">
                           <label for="mqttTarget">Output on MQTT:</label>
                           <div class="input-group">
                             <span class="input-group-addon">/replay/ & /trace/</span>
-                            <input class="form-control" id="mqttTarget" placeholder="Enter an ID for this trace.">
+                            <input class="form-control" id="mqttTarget" placeholder="Automatic for CouchDB replays." readonly>
                           </div>
                         </div>
                       </div>

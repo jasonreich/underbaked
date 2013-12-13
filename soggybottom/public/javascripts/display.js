@@ -86,6 +86,13 @@ $(function() {
         return 'Cannot replay trace without first uploading to server.';
       }
     } 
+    
+    // Page 3: Tick and output MQTT on replay
+    var isReplaying = 
+      $('#telemetrySourceRadioRemote').prop('checked') &&
+      $('#telemetryViewRadioPartial').prop('checked');
+    $('#telemetryTargetMQTT').prop('checked', isReplaying);
+    $('#mqttTarget').val(isReplaying ? $('#remoteID').val() : "");
   
     // Page 1: Are boxes filled?
     if ($('#telemetrySourceRadioLocal').prop('checked')) {
@@ -103,11 +110,11 @@ $(function() {
     } 
     
     // Page 2: Are boxes filled?
-    if ($('#telemetryViewRadioPartial').prop('checked')) {
+    /* if ($('#telemetryViewRadioPartial').prop('checked')) {
       if (! $('#startTimePartial').val()) {
         return 'No start time entered.';
       }
-    }
+    } */
     
     // Page 3: Are boxes filled?
     if ($('#telemetryTargetCouchDB').prop('checked')) {
