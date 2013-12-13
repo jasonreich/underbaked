@@ -241,13 +241,10 @@ $(function() {
       });
     }
     
-    if ($('#telemetryTargetMQTT').prop('checked')) {
-      mqttTopic = '/trace/' + $('#mqttTarget').val();
-    } 
-    
     if ($('#telemetryTargetMap').prop('checked')) {
       var trace = plotArchive(history);
       if (mqttTopic) {
+        console.log('Subscribing to ' + mqttTopic);
         trace.subscribeFeed(mqttTopic);
       } else {
         trace.finishFeed();
@@ -329,7 +326,9 @@ $(function() {
                    .css('color', color);
     var nameCell = $('<td class="text-success">Loading...</td>');
     var startCell = $('<td>');
-    var totalCell = $('<td class="text-success">Live</td>');
+    var totalCell = $('<td class="text-success"></td>');
+    var playPause = $('<button type="button" class="btn btn-primary btn-xs"><span class="glyphicon glyphicon-pause"></span> Pause</button>');
+    totalCell.append(playPause);
     $('#traceListing').append(
       $('<tr>').append(symbolCell, nameCell, startCell, totalCell)
     );
@@ -406,7 +405,9 @@ $(function() {
     };
 
     // Subscribe to live feed
-    self.subscribeFeed = function(traceID) {
+    var traceID;
+    self.subscribeFeed = function(_traceID) {
+      traceID = _traceID;
       handlerDictionary[traceID] = function(obj) {
         self.addDataPoint(
           moment.unix(obj.tst),
@@ -423,6 +424,20 @@ $(function() {
       nameCell.removeClass('text-success');
       totalCell.text(delta + ' hours').removeClass('text-success');
     };
+    
+    // Toggle a replay
+    var isRunning = true;
+    self.toggleReplay = function() {
+      isRunning = !isRunning;
+      sendCommand({'command': isRunning ? 'start' : 'pause', 'topic': traceID});
+      if (!isRunning) {
+        playPause.html('<span class="glyphicon glyphicon-play"></span> Play');
+      } else {
+        playPause.html('<span class="glyphicon glyphicon-pause"></span> Pause');
+      }
+      return isRunning;
+    };
+    playPause.click(self.toggleReplay);
   };
 
   // Parse a GPX file
