@@ -5,8 +5,6 @@
 
 var express = require('express');
 var request = require('request');
-var routes = require('./routes');
-var user = require('./routes/user');
 var http = require('http');
 var path = require('path');
 
@@ -14,8 +12,6 @@ var app = express();
 
 // all environments
 app.set('port', process.env.PORT || 3000);
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'ejs');
 app.use(function(req, res, next){
   var proxy_path = req.path.match(/^\/db(.*)$/);
   if(proxy_path){
@@ -41,7 +37,12 @@ if ('development' == app.get('env')) {
   app.use(express.errorHandler());
 }
 
-app.get('/', routes.index);
+// Output the desktop client
+app.get('/', function(req, res){
+  res.sendfile("public/examples/desktop.html")
+});
+
+// Output a .MQTC file for configuring MQTTidue
 app.get('/mqtc/:liveID', function(req, res) {
   res.attachment('conf.mqtc');
   res.json({
