@@ -205,7 +205,7 @@ $(function() {
       var traceID = $('#storeID').val();
       var points = [];
       history.points.forEach(function(item) {
-        item._id = traceID + item.tst;
+        // item._id = traceID + '_' + item.tst;
         item.topic = traceID;
         points.push(item);
       });
