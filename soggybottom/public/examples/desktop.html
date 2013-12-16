@@ -114,7 +114,17 @@
                       <div class="col-md-11">
                         <div class="form-group">
                           <label for="remoteID">Remote CouchDB Trace:</label>
-                          <input type="text" class="form-control" id="remoteID" placeholder="Enter an ID for this CouchDB trace.">
+                          <div class="input-group">
+                            <input type="text" class="form-control" id="remoteID" placeholder="Enter an ID for this CouchDB trace.">
+                            <div class="input-group-btn">
+                              <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" id="remoteIDButton">
+                                <span class="caret"></span>
+                              </button>
+                              <ul class="dropdown-menu pull-right" role="menu" id="traceIDList">
+                                <li><a href="#">Loading...</a></li>
+                              </ul>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>

@@ -482,4 +482,28 @@ $(function() {
 
     return trace;
   };
+  
+  // Load CouchDB traceIDs
+  var loadTraceIDs = function() {
+    $.ajax({
+          url: '/db/traces/_design/TraceDesign/_view/getTopics',
+          type: 'GET',
+          contentType: 'application/json',
+          dataType: 'json',
+          success: function(data) {
+            var idList = $('#traceIDList');
+            idList.html('');
+          
+            data.rows.forEach(function(item) {
+              var idItem = $('<li><a href="#">' + item.value + '</a></li>');
+              idItem.appendTo(idList);
+              idItem.click(function(event) {
+                $('#remoteID').val(item.value);
+              });
+            });
+          }
+        });
+  };
+  loadTraceIDs();
+  $('#remoteIDButton').mouseenter(loadTraceIDs);
 });
